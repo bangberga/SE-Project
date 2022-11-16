@@ -26,6 +26,7 @@ const schemaDefinition: SchemaDefinition = {
   description: {
     type: String,
     maxlength: [255, "Description length must be <= 255 characters"],
+    trim: true,
   },
 };
 
