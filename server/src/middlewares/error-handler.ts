@@ -1,6 +1,6 @@
 import { ErrorRequestHandler } from "express";
 import { StatusCodes } from "http-status-codes";
-import ResponseError from "../interfaces/error-response";
+import ResponseError from "../interfaces/IResponseError";
 
 const errorHandlerMiddleware: ErrorRequestHandler = (err, req, res, next) => {
   const customError: ResponseError = {
@@ -8,7 +8,13 @@ const errorHandlerMiddleware: ErrorRequestHandler = (err, req, res, next) => {
     msg: err.message || "Internal server error",
     statusCode: err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
   };
-  res.status(customError.statusCode).json(customError);
+  if (err.name === "ValidationError") {
+    customError.statusCode = StatusCodes.BAD_REQUEST;
+    const errors = Object.values(err.errors) as { message: string }[];
+    customError.msg = errors.map((item) => item.message).join(", ");
+  }
+  // return res.status(500).json({ err });
+  return res.status(customError.statusCode).json(customError);
 };
 
 export default errorHandlerMiddleware;

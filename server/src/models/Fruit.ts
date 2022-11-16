@@ -1,5 +1,5 @@
 import { Schema, model, SchemaDefinition } from "mongoose";
-import IFruit from "../interfaces/IFruit";
+import IFruit from "../interfaces/models/IFruit";
 
 const schemaDefinition: SchemaDefinition<IFruit> = {
   name: {

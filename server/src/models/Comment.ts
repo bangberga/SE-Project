@@ -1,5 +1,5 @@
 import { Schema, model, SchemaDefinition, Types } from "mongoose";
-import IComment from "../interfaces/IComment";
+import IComment from "../interfaces/models/IComment";
 
 const schemaDefinition: SchemaDefinition<IComment> = {
   productId: {
@@ -9,7 +9,6 @@ const schemaDefinition: SchemaDefinition<IComment> = {
   },
   userId: {
     type: String,
-    ref: "User",
     required: [true, "Please provide user's id"],
   },
   comment: {

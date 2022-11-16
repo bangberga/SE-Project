@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { StatusCodes } from "http-status-codes";
-import ResponseError from "../interfaces/error-response";
+import ResponseError from "../interfaces/IResponseError";
 
 const notFoundMiddleware: RequestHandler = (req, res) => {
   const customError: ResponseError = {
