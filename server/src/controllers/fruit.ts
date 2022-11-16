@@ -66,6 +66,11 @@ const getFruitById: RequestHandler = async (req, res) => {
 
 const postNewFruit: RequestHandler = async (req, res) => {
   const { body } = req;
+  const {
+    locals: { uid },
+  } = res;
+  const fruit = await Fruit.create<IFruit>({ ...body, owner: uid });
+  res.status(StatusCodes.CREATED).json({ fruit });
 };
 
-export { getAllFruits, getFruitById };
+export { getAllFruits, getFruitById, postNewFruit };
