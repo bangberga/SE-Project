@@ -5,12 +5,11 @@ const validate = async (number: string, country: string) => {
     const {
       data: { isValidNumber },
     }: { data: { isValidNumber: boolean } } = await axios.get(
-      "https://phonenumbervalidatefree.p.rapidapi.com/ts_PhoneNumberValidateTest.jsp",
+      process.env.X_RAPID_API as string,
       {
         headers: {
-          "X-RapidAPI-Key":
-            "d76518b774msh84131b061390fc6p1581e4jsn976815d3f8e6",
-          "X-RapidAPI-Host": "phonenumbervalidatefree.p.rapidapi.com",
+          "X-RapidAPI-Key": process.env.X_RAPID_API_KEY,
+          "X-RapidAPI-Host": process.env.X_RAPID_API_HOST,
         },
         params: { number, country },
       }
