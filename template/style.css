@@ -1,82 +1,189 @@
 html{
-    font-kerning: 62.5%; /* 16px x 62.5 = 10px = 1rem */
+    font-size: 62.5%; /* 16px * 62.5 = 10px = 1rem */
     box-sizing: border-box;
-}
-
-body{
-    margin: 0 ; 
+  }
+  body{
+    font: 1.6rem Helvetica;
     height: 100vh;
-    font-size: 1.6rem;
-    font-family: Helvetica, Arial, sans-serif;
-}
-
-/* layout */
-.grid-container{
-   display: grid ;
+    margin: 0;
+  }
+  .grid-container{
+    display: grid;
     grid-template-areas: 
-    'header'
-    'main'
-    'footer';
+    "header"
+    "main"
+    "footer";
     grid-template-columns: 1fr;
     grid-template-rows: 5rem 1fr 5rem;
     height: 100%;
-}
-header{
-grid-area: header;
-background-color: #468989;
-
-}
-main{
-grid-area: main;
-padding: 1rem;
-}
-footer{
-    grid-area:footer;
-    background-color: #203040;
-    color:#fff;
-}
-
-a{
-    text-decoration:none;
-}
-a:hover{
-    color:#d4781c;
-}
-header a{
-    color:#ffffff;
-    padding: 1rem;
-}
-
-.row{
+  }
+  .header{
+    grid-area: header;
+    background-color: #48cd00;
+    color: #ffffff;
     display: flex;
-    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-}
-.row.center{
-justify-content: center;
-
-}
-/*IMAGE*/
-
-img{
-    border-radius: 0.5rem;
-}
-img{
-    max-width: 29rem;
-    width: 100%;
-}
-/*Card*/
-.card{
-    border: 0.1rem #c0c0c0 solid;
-    background-color: #f8f8f8;
-    border-radius: 0.5rem;
+    padding: 0.5rem;
+  }
+  .brand a{
+    color: #ffffff;
+    font-size: 3rem;
+    font-weight: bold;
+    text-decoration: none;
+  }
+  .header-links a{
+    color:#ffffff;
+    text-decoration: none;
+    padding: 1rem;
+  
+  }
+  .header-links a:hover{
+    color:#09a080;
+  }
+  .main{
+    grid-area: main;
+  }
+  .footer{
+    grid-area: footer;
+    background-color: #203040;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  a{
+    text-decoration: none;
+  }
+  a:hover{
+    color:#3c5305
+  }
+  /* Home Screen */
+  .products {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .products li {
+    list-style-type: none;
+    padding: 0;
+    flex: 0 1 34rem;
     margin: 1rem;
-}
-.card-body{
-padding: 1rem;
-}
+    height: 50rem;
+    border-bottom: .1rem #c0c0c0 solid;
+  }
+  .product{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+  }
+  .product-name{
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  .product-brand{
+    font-size: 1.2rem;
+    color:#808080;
+  }
+  .product-price{
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  .product-image{
+    max-width: 34rem;
+    max-height: 34rem;
+  }
+  .product-rating{
+    margin-bottom: 1rem;
+  }
+  /* Sidebar */
+  
+  .brand button {
+    font-size: 3rem;
+    padding: .5rem;
+    background: none;
+    border: none;
+    color:#ffffff;
+    cursor: pointer;
+  }
+  .sidebar{
+    position: fixed;
+    transform: translateX(-30rem);
+    width: 30rem;
+    background-color: #f0f0f0;
+    height: 100%;
+  }
+  .sidebar.open{
+    transform: translateX(0);
+  }
+  
+  .sidebar-close-button{
+    border-radius: 50%;
+    border: .1rem #000000 solid;
+    width: 3rem;
+    height: 3rem;
+    padding: .5rem;
+    font-size: 2rem;
+    padding-top: 0;
+    cursor: pointer;
+    position: absolute;
+    right: .5rem;
+    top: 1.5rem
+  }
 
-.card-body > *{
-    margin-bottom: 0.5rem;
-}
+  .btn:link,
+  .btn:visited {
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 5px 30px;
+      display: inline-block;
+      border-radius: 100px;
+      transition: all .2s;
+      position: absolute;
+  }
+  
+  .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(244, 135, 135, 0.2);
+  }
+  
+  .btn:active {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 10px rgba(18, 186, 144, 0.2);
+  }
+  
+  .btn-white {
+      background-color: rgb(156, 225, 60);
+      color: rgb(218, 72, 72);
+  }
+  
+  .btn::after {
+      content: "";
+      display: inline-block;
+      height: 100%;
+      width: 100%;
+      border-radius: 100px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: -1;
+      transition: all .4s;
+  }
+  
+  .btn-white::after {
+      background-color: rgb(10, 153, 3);
+  }
+  
+  .btn:hover::after {
+      transform: scaleX(1.4) scaleY(1.6);
+      opacity: 0;
+  }
+  
+  .btn-animated {
+      animation: moveInBottom 5s ease-out;
+      animation-fill-mode: backwards;
+  }
+  
+ 
