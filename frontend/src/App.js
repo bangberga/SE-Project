@@ -1,13 +1,9 @@
-<!DOCTYPE html>
-<html>
+import logo from './logo.svg';
+import './App.css';
 
-<head>
-  <link rel="stylesheet" href="style.css" />
-  <title>SHOP_FRUIT</title>
-</head>
-
-<body>
-  <div className="grid-container">
+function App() {
+  return (
+    <div className="grid-container">
     <header className="header">
       <div className="brand">
         <button onclick="openMenu()">
@@ -39,7 +35,7 @@
         <ul className="products">
           <li>
             <div className="product">
-              <img className="product-image" src="./imges/pd1.jpg" alt="product" />
+              <img className="product-image" src="/frontend/images/pd1.jpg" alt="product" />
               <div className="product-name">
                 <a href="product.html">Pineapple</a>
               </div>
@@ -112,14 +108,8 @@
       All right reserved.
     </footer>
   </div>
-  <script>
-    function openMenu() {
-      document.querySelector(".sidebar").classNameList.add("open");
-    }
-    function closeMenu() {
-      document.querySelector(".sidebar").classNameList.remove("open")
-    }
-  </script>
-</body>
+ 
+  );
+}
 
-</html>
+export default App;
