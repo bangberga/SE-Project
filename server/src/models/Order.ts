@@ -1,9 +1,12 @@
 import { Schema, model, SchemaDefinition, Types } from "mongoose";
+import IOrder from "../interfaces/IOrder";
+import IFruit from "../interfaces/IFruit";
 
-const schemaDefinition: SchemaDefinition = {
+const schemaDefinition: SchemaDefinition<IOrder> = {
   userId: {
     type: String,
     required: [true, "Please provide customer's id"],
+    ref: "User",
   },
   listOfFruits: {
     type: [
@@ -19,9 +22,15 @@ const schemaDefinition: SchemaDefinition = {
         },
       },
     ],
+    validate: {
+      validator: function (v: IFruit[]) {
+        return v.length > 0;
+      },
+      message: "At least 1 type of fruit",
+    },
   },
 };
 
-const OrderSchema = new Schema(schemaDefinition, { timestamps: true });
+const OrderSchema = new Schema<IOrder>(schemaDefinition, { timestamps: true });
 
 export default model("Order", OrderSchema);

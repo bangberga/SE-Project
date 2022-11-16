@@ -1,7 +1,8 @@
 import { Schema, model, SchemaDefinition, Types } from "mongoose";
 import validatePhoneNumber from "../utils/validatePhoneNumber";
+import ITransaction from "../interfaces/ITransaction";
 
-const schemaDefinition: SchemaDefinition = {
+const schemaDefinition: SchemaDefinition<ITransaction> = {
   address: {
     type: String,
     required: [true, "Please provide an address"],
@@ -22,13 +23,32 @@ const schemaDefinition: SchemaDefinition = {
     type: String,
     maxlength: [255, "Description must be <= 255 characters"],
     trim: true,
+    default: "No description",
   },
   orderId: {
     type: Types.ObjectId,
     ref: "Order",
+    required: [true, "Please provide order's id"],
+  },
+  status: {
+    type: String,
+    enum: {
+      values: ["pending", "success", "fail"],
+      message: "Oops! {VALUE} is not supported",
+    },
+    default: "pending",
+  },
+  paymentMethod: {
+    type: String,
+    enum: {
+      values: ["in cash", "paypal"],
+      message: "Oops! {VALUE} is not supported",
+    },
   },
 };
 
-const TransactionSchema = new Schema(schemaDefinition, { timestamps: true });
+const TransactionSchema = new Schema<ITransaction>(schemaDefinition, {
+  timestamps: true,
+});
 
 export default model("Transaction", TransactionSchema);

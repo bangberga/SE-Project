@@ -1,6 +1,7 @@
-import { Schema, model, ValidatorProps, SchemaDefinition } from "mongoose";
+import { Schema, model, SchemaDefinition } from "mongoose";
+import IFruit from "../interfaces/IFruit";
 
-const schemaDefinition: SchemaDefinition = {
+const schemaDefinition: SchemaDefinition<IFruit> = {
   name: {
     type: String,
     required: [true, "Please provide fruit name"],
@@ -27,9 +28,10 @@ const schemaDefinition: SchemaDefinition = {
     type: String,
     maxlength: [255, "Description length must be <= 255 characters"],
     trim: true,
+    default: "No description",
   },
 };
 
-const FruitSchema = new Schema(schemaDefinition, { timestamps: true });
+const FruitSchema = new Schema<IFruit>(schemaDefinition, { timestamps: true });
 
 export default model("Fruit", FruitSchema);
