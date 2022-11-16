@@ -10,23 +10,13 @@ const schemaDefinition: SchemaDefinition = {
   },
   price: {
     type: Number,
-    validate: {
-      validator: function (v: number) {
-        return v >= 0;
-      },
-      message: (props: ValidatorProps) => `${props.value} is a negative number`,
-    },
     required: [true, "Please provide fruit price"],
+    min: [0, "Please provide a positive price"],
   },
   quantity: {
     type: Number,
-    validate: {
-      validator: function (v: number) {
-        return v >= 0;
-      },
-      message: (props: ValidatorProps) => `${props.value} is a negative number`,
-    },
     default: 0,
+    min: [0, "Please provide a positive quantity"],
   },
   image: {
     type: [String],
