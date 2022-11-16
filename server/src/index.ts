@@ -10,9 +10,10 @@ import express from "express";
 
 import connectDB from "./db/connect";
 
+import fruitRouter from "./routes/fruit";
+
 import notFoundMiddleware from "./middlewares/not-found";
 import errorHandlerMiddleware from "./middlewares/error-handler";
-import authenticationMiddleware from "./middlewares/authentication";
 
 import CustomResponseError from "./errors/CustomResponseError";
 
@@ -34,6 +35,7 @@ app.use(cors());
 app.use(require("xss-clean")());
 
 // Routes
+app.use("/api/v1/fruits", fruitRouter);
 
 // Middlewares
 app.use(notFoundMiddleware);
