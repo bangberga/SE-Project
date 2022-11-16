@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 
-class CustomResponseError extends Error {
+className CustomResponseError extends Error {
   public readonly err: boolean;
   public readonly statusCode: StatusCodes;
   constructor(message: string, statusCode: StatusCodes) {
