@@ -1,12 +1,11 @@
 import { Schema, model, SchemaDefinition, Types } from "mongoose";
-import IOrder from "../interfaces/IOrder";
-import IFruit from "../interfaces/IFruit";
+import IOrder from "../interfaces/models/IOrder";
+import IFruit from "../interfaces/models/IFruit";
 
 const schemaDefinition: SchemaDefinition<IOrder> = {
   userId: {
     type: String,
     required: [true, "Please provide customer's id"],
-    ref: "User",
   },
   listOfFruits: {
     type: [

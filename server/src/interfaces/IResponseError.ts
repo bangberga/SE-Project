@@ -1,9 +1,9 @@
 import { StatusCodes } from "http-status-codes";
 
-interface ResponseError {
+interface IResponseError {
   err?: true;
   msg: string;
   statusCode: StatusCodes;
 }
 
-export default ResponseError;
+export default IResponseError;

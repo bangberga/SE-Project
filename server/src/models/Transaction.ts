@@ -1,6 +1,6 @@
 import { Schema, model, SchemaDefinition, Types } from "mongoose";
 import validatePhoneNumber from "../utils/validatePhoneNumber";
-import ITransaction from "../interfaces/ITransaction";
+import ITransaction from "../interfaces/models/ITransaction";
 
 const schemaDefinition: SchemaDefinition<ITransaction> = {
   address: {

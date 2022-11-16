@@ -34,9 +34,6 @@ app.use(cors());
 app.use(require("xss-clean")());
 
 // Routes
-app.get("/", authenticationMiddleware, (req, res) => {
-  res.status(200).json({ user: res.locals.uid });
-});
 
 // Middlewares
 app.use(notFoundMiddleware);
