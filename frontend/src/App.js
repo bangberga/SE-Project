@@ -35,7 +35,7 @@ function App() {
         <ul class="products">
           <li>
             <div class="product">
-              <img class="product-image" src="/template/imges/pd1.jpg" alt="product" />
+              <img class="product-image" src="/frontend/images/pd1.jpg" alt="product" />
               <div class="product-name">
                 <a href="product.html">Pineapple</a>
               </div>
