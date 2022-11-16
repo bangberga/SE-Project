@@ -60,7 +60,12 @@ const getFruitById: RequestHandler = async (req, res) => {
       `No fruit with id: ${id}`,
       StatusCodes.NOT_FOUND
     );
+  // TODO: get infor of owner
   res.status(StatusCodes.OK).json({ fruit });
+};
+
+const postNewFruit: RequestHandler = async (req, res) => {
+  const { body } = req;
 };
 
 export { getAllFruits, getFruitById };
