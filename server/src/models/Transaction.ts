@@ -44,6 +44,7 @@ const schemaDefinition: SchemaDefinition<ITransaction> = {
       values: ["in cash", "paypal"],
       message: "Oops! {VALUE} is not supported",
     },
+    default: "in cash",
   },
 };
 
