@@ -30,6 +30,16 @@ const schemaDefinition: SchemaDefinition<IFruit> = {
     trim: true,
     default: "No description",
   },
+  owner: {
+    type: String,
+    required: [true, "Please provide an owner"],
+  },
+  rating: {
+    type: Number,
+    min: [0, "Minimum must be 0"],
+    max: [5, "Maximum must be 5"],
+    default: 0,
+  },
 };
 
 const FruitSchema = new Schema<IFruit>(schemaDefinition, { timestamps: true });
