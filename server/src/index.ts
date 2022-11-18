@@ -11,6 +11,7 @@ import express from "express";
 import connectDB from "./db/connect";
 
 import fruitRouter from "./routes/fruit";
+import transactionRouter from "./routes/transaction";
 
 import notFoundMiddleware from "./middlewares/not-found";
 import errorHandlerMiddleware from "./middlewares/error-handler";
@@ -36,6 +37,7 @@ app.use(require("xss-clean")());
 
 // Routes
 app.use("/api/v1/fruits", fruitRouter);
+app.use("/api/v1/transactions", transactionRouter);
 
 // Middlewares
 app.use(notFoundMiddleware);
