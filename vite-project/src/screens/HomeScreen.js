@@ -1,10 +1,13 @@
 import React, {useState} from "react";
 import Product from '../components/Product';
+import Product from '../components/MessageBox';
+import Product from '../components/LoadingBox';
 import data from '../data';
 
 export default function HomeScreen(){
   const [product, setProducts]= useState([]);
   const [loading, setLoanding] = useState(false);
+  cont [error, setError] = useState(false);
   useEffect(() =>{
     const fecthData = async () => {
       try{
@@ -24,7 +27,7 @@ setProducts(data);
       {loading ?(
         <LoadingBox></LoadingBox>
       ): error ? (
-        <MessageBox>{error}</MessageBox>
+        <MessageBox variant = 'danger'>{error}</MessageBox>
       ): <div className="row center">
       {data.products.map((product) =>(
         <Product key={product._id} product={product}></Product>
