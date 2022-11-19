@@ -8,10 +8,21 @@ import {
   lazy,
   useContext,
 } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import GlobalContext from "./interfaces/GlobalContext";
+import LazyLoading from "./components/client/LazyLoading";
 
-const Login = lazy(() => import("./pages/Login"));
+const Login = lazy(() => import("./pages/client/Login"));
+const Register = lazy(() => import("./pages/client/Register"));
+const Home = lazy(() => import("./pages/client/Home"));
+const Checkout = lazy(() => import("./pages/client/Checkout"));
+const Cart = lazy(() => import("./pages/client/Cart"));
+const Products = lazy(() => import("./pages/client/Products"));
+const SingleProduct = lazy(() => import("./pages/client/SingleProduct"));
+
+const Navigation = lazy(() => import("./components/client/Navigation"));
+const NavigateRoute = lazy(() => import("./components/client/NavigateRoute"));
+const ProtectedRoute = lazy(() => import("./components/client/ProtectedRoute"));
 
 const AppProvider = createContext<GlobalContext>({
   user: null,
@@ -31,19 +42,30 @@ export default function App() {
   }, []);
 
   return (
-    <BrowserRouter>
+    <>
       <AppProvider.Provider value={{ user, setUser }}>
+        <Navigation />
         <main>
-          <Suspense fallback={<h1>Loading...</h1>}>
+          <Suspense fallback={<LazyLoading />}>
             <Routes>
               <Route path="/">
-                <Route path="login" element={<Login />} />
+                <Route index element={<Home />} />
+                <Route path="register" element={<Register />} />
+                <Route element={<NavigateRoute />}>
+                  <Route path="login" element={<Login />} />
+                </Route>
+                <Route path="products" element={<Products />} />
+                <Route path="products/:id" element={<SingleProduct />} />
+                <Route path="cart" element={<Cart />} />
+                <Route element={<ProtectedRoute />}>
+                  <Route path="checkout" element={<Checkout />} />
+                </Route>
               </Route>
             </Routes>
           </Suspense>
         </main>
       </AppProvider.Provider>
-    </BrowserRouter>
+    </>
   );
 }
 

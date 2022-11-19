@@ -1,0 +1,9 @@
+.lazing-loading-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 5;
+  background-color: #fff;
+}
