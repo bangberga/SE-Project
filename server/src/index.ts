@@ -16,8 +16,6 @@ import transactionRouter from "./routes/transaction";
 import notFoundMiddleware from "./middlewares/not-found";
 import errorHandlerMiddleware from "./middlewares/error-handler";
 
-import CustomResponseError from "./errors/CustomResponseError";
-
 const app = express();
 
 app.set("trust proxy", 1);

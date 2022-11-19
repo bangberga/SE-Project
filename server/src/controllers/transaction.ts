@@ -5,6 +5,7 @@ import CustomResponseError from "../errors/CustomResponseError";
 import ITransaction from "../interfaces/models/ITransaction";
 import Transaction from "../models/Transaction";
 
+// customer buy something and create new transaction
 const postNewTransaction: RequestHandler = async (req, res) => {
   const { body } = req;
   const {
@@ -17,6 +18,8 @@ const postNewTransaction: RequestHandler = async (req, res) => {
   res.status(StatusCodes.CREATED).json({ transaction });
 };
 
+// customer: get all transactions of him/her
+// admin: get all transactions belong to admin
 const getAllTransactions: RequestHandler = async (req, res) => {
   const {
     query: { status, paymentMethod },
@@ -24,22 +27,25 @@ const getAllTransactions: RequestHandler = async (req, res) => {
   const {
     locals: { uid },
   } = res;
-  const queryObj: FilterQuery<ITransaction> = { "orderId.uid": uid };
+  const queryObj: FilterQuery<ITransaction> = {
+    $or: [{ "orderId.uid": uid }, { adminId: uid }],
+  };
   if (status && typeof status === "string") {
     queryObj.status = status;
   }
   if (paymentMethod && typeof paymentMethod === "string") {
     queryObj.paymentMethod = paymentMethod;
   }
-  const transaction = await Transaction.find(queryObj).populate("orderId");
-  if (transaction.length === 0)
+  const transactions = await Transaction.find(queryObj).populate("orderId");
+  if (transactions.length === 0)
     throw new CustomResponseError(
       "No transaction found",
       StatusCodes.NOT_FOUND
     );
-  res.status(StatusCodes.OK).json({ transaction });
+  res.status(StatusCodes.OK).json({ transactions });
 };
 
+// only admin can update transaction
 const updateTransaction: RequestHandler = async (req, res) => {
   const {
     params: { id },
@@ -49,7 +55,7 @@ const updateTransaction: RequestHandler = async (req, res) => {
     locals: { uid },
   } = res;
   const updatedTransaction = await Transaction.findOneAndUpdate(
-    { _id: id, "orderId.uid": uid },
+    { _id: id, adminId: uid },
     body,
     { runValidators: true, new: true }
   ).populate("orderId");
@@ -61,6 +67,7 @@ const updateTransaction: RequestHandler = async (req, res) => {
   res.status(StatusCodes.OK).json({ updatedTransaction });
 };
 
+// get specific transaction of admin or buyer
 const getTransactionById: RequestHandler = async (req, res) => {
   const {
     params: { id },
@@ -70,8 +77,13 @@ const getTransactionById: RequestHandler = async (req, res) => {
   } = res;
   const transaction = await Transaction.findOne<ITransaction>({
     _id: id,
-    "orderId.uid": uid,
+    $or: [{ "orderId.uid": uid }, { adminId: uid }],
   }).populate("orderId");
+  if (!transaction)
+    throw new CustomResponseError(
+      `No transaction found with id "${id}"`,
+      StatusCodes.NOT_FOUND
+    );
   res.status(StatusCodes.OK).json({ transaction });
 };
 
