@@ -21,7 +21,7 @@ setProducts(data);
       }
     };
     fecthData();
-  },[]  );
+  },[]  )};
   return (
     <div>
       {loading ?(
@@ -36,5 +36,4 @@ setProducts(data);
       }
       </div>
 
-  );
-}
+   );
