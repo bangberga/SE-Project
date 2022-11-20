@@ -1,27 +1,25 @@
-import React, {useState} from "react";
-import Product from '../components/Product';
-import Product from '../components/MessageBox';
-import Product from '../components/LoadingBox';
-import data from '../data';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { useSelector, useDispatch } from 'react-redux';
+import { listProducts } from '../actions/productActions';
+import Rating from '../components/Rating';
 
-export default function HomeScreen(){
-  const [product, setProducts]= useState([]);
-  const [loading, setLoanding] = useState(false);
-  cont [error, setError] = useState(false);
-  useEffect(() =>{
-    const fecthData = async () => {
-      try{
-setLoading(true);
-const { data  } = await axios.get('/api/products');
-setLoading(false);
-setProducts(data);
-      }catch(err){
-        setError(err.message);
-        setLoading(false);
-      }
+function HomeScreen(props) {
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [sortOrder, setSortOrder] = useState('');
+  const category = props.match.params.id ? props.match.params.id : '';
+  const productList = useSelector((state) => state.productList);
+  const { products, loading, error } = productList;
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(listProducts(category));
+
+    return () => {
+      //
     };
     fecthData();
-  },[]  )};
+  },[]  );
   return (
     <div>
       {loading ?(
@@ -36,4 +34,5 @@ setProducts(data);
       }
       </div>
 
-   );
+  );
+}

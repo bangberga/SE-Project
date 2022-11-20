@@ -3,6 +3,11 @@ import validatePhoneNumber from "../utils/validatePhoneNumber";
 import ITransaction from "../interfaces/models/ITransaction";
 
 const schemaDefinition: SchemaDefinition<ITransaction> = {
+  adminId: {
+    type: String,
+    required: [true, "Please provide an admin's id"],
+    default: process.env.ADMIN_UID,
+  },
   address: {
     type: String,
     required: [true, "Please provide an address"],
