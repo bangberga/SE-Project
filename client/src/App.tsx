@@ -1,74 +1,69 @@
-import { User, onAuthStateChanged } from "firebase/auth";
-import { auth } from "./utils/firebaseConfig";
-import {
-  createContext,
-  useState,
-  useEffect,
-  Suspense,
-  lazy,
-  useContext,
-} from "react";
+import { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
-import GlobalContext from "./interfaces/GlobalContext";
-import LazyLoading from "./components/client/LazyLoading";
+import PageLoading from "./components/PageLoading";
 
-const Login = lazy(() => import("./pages/client/Login"));
-const Register = lazy(() => import("./pages/client/Register"));
-const Home = lazy(() => import("./pages/client/Home"));
-const Checkout = lazy(() => import("./pages/client/Checkout"));
+const ClientLogin = lazy(() => import("./pages/client/Login"));
+const ClientRegister = lazy(() => import("./pages/client/Register"));
+const ClientHome = lazy(() => import("./pages/client/Home"));
 const Cart = lazy(() => import("./pages/client/Cart"));
 const Products = lazy(() => import("./pages/client/Products"));
-const SingleProduct = lazy(() => import("./pages/client/SingleProduct"));
+const AdminHome = lazy(() => import("./pages/admin/Home"));
+const AdminLogin = lazy(() => import("./pages/admin/Login"));
+const AdminRegister = lazy(() => import("./pages/admin/Register"));
+const Stock = lazy(() => import("./pages/admin/Stock"));
+const EditFruit = lazy(() => import("./pages/admin/EditFruit"));
+const PostFruit = lazy(() => import("./pages/admin/PostFruit"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
-const Navigation = lazy(() => import("./components/client/Navigation"));
-const NavigateRoute = lazy(() => import("./components/client/NavigateRoute"));
-const ProtectedRoute = lazy(() => import("./components/client/ProtectedRoute"));
-
-const AppProvider = createContext<GlobalContext>({
-  user: null,
-  setUser: () => {},
-});
+const StockProvider = lazy(() => import("./components/admin/StockProvider"));
+const ProductsProvider = lazy(
+  () => import("./components/client/ProductsProvider")
+);
+const ClientNavigateRoute = lazy(
+  () => import("./components/client/NavigateRoute")
+);
+const AdminNavigateRoute = lazy(
+  () => import("./components/admin/NavigateRoute")
+);
+const AdminProtectedRoute = lazy(
+  () => import("./components/admin/ProtectedRoute")
+);
+const ClientProvider = lazy(() => import("./components/client/ClientProvider"));
+const AdminProvider = lazy(() => import("./components/admin/AdminProvider"));
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const unsubscribeAuthStateChanged = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-    });
-    return () => {
-      unsubscribeAuthStateChanged();
-    };
-  }, []);
-
   return (
-    <>
-      <AppProvider.Provider value={{ user, setUser }}>
-        <Navigation />
-        <main>
-          <Suspense fallback={<LazyLoading />}>
-            <Routes>
-              <Route path="/">
-                <Route index element={<Home />} />
-                <Route path="register" element={<Register />} />
-                <Route element={<NavigateRoute />}>
-                  <Route path="login" element={<Login />} />
-                </Route>
-                <Route path="products" element={<Products />} />
-                <Route path="products/:id" element={<SingleProduct />} />
-                <Route path="cart" element={<Cart />} />
-                <Route element={<ProtectedRoute />}>
-                  <Route path="checkout" element={<Checkout />} />
-                </Route>
+    <main>
+      <Suspense fallback={<PageLoading />}>
+        <Routes>
+          <Route path="/" element={<ClientProvider />}>
+            <Route index element={<ClientHome />} />
+            <Route path="register" element={<ClientRegister />} />
+            <Route element={<ClientNavigateRoute />}>
+              <Route path="login" element={<ClientLogin />} />
+            </Route>
+            <Route path="products" element={<ProductsProvider />}>
+              <Route index element={<Products />} />
+              <Route path="cart" element={<Cart />}></Route>
+            </Route>
+          </Route>
+          <Route path="/admin" element={<AdminProvider />}>
+            <Route index element={<AdminHome />} />
+            <Route path="register" element={<AdminRegister />} />
+            <Route element={<AdminNavigateRoute />}>
+              <Route path="login" element={<AdminLogin />} />
+            </Route>
+            <Route element={<AdminProtectedRoute />}>
+              <Route path="stock" element={<StockProvider />}>
+                <Route index element={<Stock />} />
+                <Route path="new" element={<PostFruit />} />
+                <Route path="edit/:id" element={<EditFruit />} />
               </Route>
-            </Routes>
-          </Suspense>
-        </main>
-      </AppProvider.Provider>
-    </>
+            </Route>
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </main>
   );
-}
-
-export function useGlobalContext() {
-  return useContext(AppProvider);
 }

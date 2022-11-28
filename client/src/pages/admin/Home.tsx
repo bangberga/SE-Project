@@ -4,7 +4,7 @@ import ComingSoon from "../../components/ComingSoon";
 
 export default function Home() {
   useEffect(() => {
-    setCookie("navigateClientUrl", "/", 365);
+    setCookie("navigateAdminUrl", "/admin", 365);
   });
   return (
     <section>

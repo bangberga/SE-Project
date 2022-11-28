@@ -1,12 +1,12 @@
 import { Outlet, Navigate } from "react-router-dom";
-import { useGlobalContext } from "../../App";
 import { getCookie } from "../../utils/cookie";
+import { useClient } from "./ClientProvider";
 
 export default function NavigateRoute() {
-  const { user } = useGlobalContext();
-  const navigateUrl = getCookie("navigateUrl");
+  const { client } = useClient();
+  const navigateUrl = getCookie("navigateClientUrl");
 
-  return user ? (
+  return client ? (
     <Navigate to={navigateUrl ? navigateUrl : "/products"} replace />
   ) : (
     <Outlet />

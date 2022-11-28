@@ -1,34 +1,34 @@
 import { NavLink } from "react-router-dom";
-import { useClient } from "./ClientProvider";
+import { useAdmin } from "./AdminProvider";
 import styled from "styled-components";
 import Logo from "../Logo";
 import Avatar from "../Avatar";
 
 export default function Navigation() {
-  const { client } = useClient();
+  const { admin } = useAdmin();
 
   return (
     <Nav>
       <Logo />
       <ul>
         <li>
-          <NavLink to="/">Home</NavLink>
+          <NavLink to="/admin">Home</NavLink>
         </li>
         <li>
-          <NavLink to="/products">Products</NavLink>
+          <NavLink to="/admin/stock">My stock</NavLink>
         </li>
-        {client ? (
+        {admin ? (
           ""
         ) : (
           <li>
-            <NavLink to="/register">Register</NavLink>
+            <NavLink to="/admin/register">Register</NavLink>
           </li>
         )}
         <li>
-          {client ? (
-            <Avatar src={client.photoURL} />
+          {admin ? (
+            <Avatar src={admin.photoURL} />
           ) : (
-            <NavLink to="/login">Login</NavLink>
+            <NavLink to="/admin/login">Login</NavLink>
           )}
         </li>
       </ul>

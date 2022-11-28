@@ -1,8 +1,8 @@
 import { Outlet, Navigate } from "react-router-dom";
-import { useGlobalContext } from "../../App";
+import { useClient } from "./ClientProvider";
 
 export default function ProtectedRoute() {
-  const { user } = useGlobalContext();
+  const { client } = useClient();
 
-  return user ? <Outlet /> : <Navigate to="/login" />;
+  return client ? <Outlet /> : <Navigate to="/login" />;
 }
