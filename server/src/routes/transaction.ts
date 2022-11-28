@@ -6,15 +6,16 @@ import {
   updateTransaction,
 } from "../controllers/transaction";
 import { postNewOrder } from "../controllers/order";
-import authenticationMiddleware from "../middlewares/authentication";
+import verifyTokenMiddleware from "../middlewares/verify-token";
+import determineCustomClaims from "../middlewares/determine-custom-claims";
 
 const router = Router();
 
-router.use(authenticationMiddleware);
+router.use(verifyTokenMiddleware);
 router
   .route("/")
   .get(getAllTransactions)
-  .post(postNewOrder, postNewTransaction);
+  .post(determineCustomClaims, postNewOrder, postNewTransaction);
 router.route("/:id").get(getTransactionById).patch(updateTransaction);
 
 export default router;

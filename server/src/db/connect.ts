@@ -5,3 +5,6 @@ const connectDB = (uri: string) => {
 };
 
 export default connectDB;
+
+const db = mongoose.connection;
+export { db };

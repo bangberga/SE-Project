@@ -3,19 +3,40 @@ import { StatusCodes } from "http-status-codes";
 import { FilterQuery } from "mongoose";
 import CustomResponseError from "../errors/CustomResponseError";
 import ITransaction from "../interfaces/models/ITransaction";
+import Fruit from "../models/Fruit";
+import Order from "../models/Order";
 import Transaction from "../models/Transaction";
 
 // customer buy something and create new transaction
 const postNewTransaction: RequestHandler = async (req, res) => {
   const { body } = req;
   const {
-    locals: { orderId },
+    locals: { order },
   } = res;
-  const transaction = await Transaction.create<ITransaction>({
-    ...body,
-    orderId,
-  });
-  res.status(StatusCodes.CREATED).json({ transaction });
+  try {
+    const transaction = await Transaction.create<ITransaction>({
+      ...body,
+      orderId: order._id,
+    });
+    const listOfFruits: { fruitId: string; quantity: number }[] =
+      order.listOfFruits;
+    await Promise.all(
+      listOfFruits.map(({ fruitId, quantity }) =>
+        Fruit.findOneAndUpdate(
+          { _id: fruitId },
+          {
+            $inc: {
+              quantity: -quantity,
+            },
+          }
+        )
+      )
+    );
+    res.status(StatusCodes.CREATED).json({ transaction });
+  } catch (error) {
+    await Order.findByIdAndDelete(order._id);
+    throw error;
+  }
 };
 
 // customer: get all transactions of him/her
@@ -27,6 +48,7 @@ const getAllTransactions: RequestHandler = async (req, res) => {
   const {
     locals: { uid },
   } = res;
+
   const queryObj: FilterQuery<ITransaction> = {
     $or: [{ "orderId.uid": uid }, { adminId: uid }],
   };

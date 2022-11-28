@@ -1,12 +1,18 @@
-import { Schema, model, SchemaDefinition } from "mongoose";
+import { Schema, model, SchemaDefinition, Model } from "mongoose";
+import { getAuth, UserRecord } from "firebase-admin/auth";
 import IFruit from "../interfaces/models/IFruit";
+
+interface FruitMethods {
+  getOwner(): Promise<UserRecord>;
+}
+
+type FruitModel = Model<IFruit, {}, FruitMethods>;
 
 const schemaDefinition: SchemaDefinition<IFruit> = {
   name: {
     type: String,
     required: [true, "Please provide fruit name"],
     maxlength: [20, "Fruit name length must be <= 20"],
-    unique: true,
     trim: true,
   },
   price: {
@@ -21,8 +27,7 @@ const schemaDefinition: SchemaDefinition<IFruit> = {
   },
   image: {
     type: [String],
-    default:
-      "https://firebasestorage.googleapis.com/v0/b/fruit-selling-management.appspot.com/o/unavailable%20image.jpg?alt=media&token=f26215c3-2fb8-42d9-ba4c-937f46aeea1",
+    default: "/unavailable image.jpg",
   },
   description: {
     type: String,
@@ -42,6 +47,13 @@ const schemaDefinition: SchemaDefinition<IFruit> = {
   },
 };
 
-const FruitSchema = new Schema<IFruit>(schemaDefinition, { timestamps: true });
+const FruitSchema = new Schema<IFruit, FruitModel, FruitMethods>(
+  schemaDefinition,
+  { timestamps: true }
+);
 
-export default model("Fruit", FruitSchema);
+FruitSchema.methods.getOwner = function () {
+  return getAuth().getUser(this.owner);
+};
+
+export default model<IFruit, FruitModel>("Fruit", FruitSchema);

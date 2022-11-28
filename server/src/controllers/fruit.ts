@@ -4,10 +4,11 @@ import { StatusCodes } from "http-status-codes";
 import Fruit from "../models/Fruit";
 import IFruit from "../interfaces/models/IFruit";
 import CustomResponseError from "../errors/CustomResponseError";
+import { UserRecord } from "firebase-admin/auth";
 
 const getAllFruits: RequestHandler = async (req, res) => {
   const {
-    query: { name, owner, filters, sort, limit, fields, skip },
+    query: { name, owner, filters, sort, limit, fields, skip, detail },
   } = req;
   const queryObj: FilterQuery<IFruit> = {};
   if (name && typeof name === "string")
@@ -47,6 +48,11 @@ const getAllFruits: RequestHandler = async (req, res) => {
   const numSkip = Number(skip);
   if (!isNaN(numSkip)) result.skip(numSkip);
   const fruits = await result;
+  let ownerDetail: UserRecord[];
+  if (detail && typeof detail === "string" && detail === "true") {
+    ownerDetail = await Promise.all(fruits.map((fruit) => fruit.getOwner()));
+    return res.status(StatusCodes.OK).json({ fruits, ownerDetail });
+  }
   res.status(StatusCodes.OK).json({ fruits });
 };
 
@@ -60,17 +66,67 @@ const getFruitById: RequestHandler = async (req, res) => {
       `No fruit with id: ${id}`,
       StatusCodes.NOT_FOUND
     );
-  // TODO: get infor of owner
-  res.status(StatusCodes.OK).json({ fruit });
+  res.status(StatusCodes.OK).json({ fruit, owner: await fruit.getOwner() });
 };
 
 const postNewFruit: RequestHandler = async (req, res) => {
   const { body } = req;
   const {
-    locals: { uid },
+    locals: { uid, customClaims },
   } = res;
+  if (!customClaims.admin)
+    throw new CustomResponseError(
+      "Not allowed",
+      StatusCodes.METHOD_NOT_ALLOWED
+    );
   const fruit = await Fruit.create<IFruit>({ ...body, owner: uid });
   res.status(StatusCodes.CREATED).json({ fruit });
 };
 
-export { getAllFruits, getFruitById, postNewFruit };
+const updateFruit: RequestHandler = async (req, res) => {
+  const {
+    body,
+    params: { id },
+  } = req;
+  const {
+    locals: { uid },
+  } = res;
+  const updated = await Fruit.findOneAndUpdate<IFruit>(
+    { _id: id, owner: uid },
+    body,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+  if (!updated)
+    throw new CustomResponseError(
+      "Not found fruit to update",
+      StatusCodes.NOT_FOUND
+    );
+  res.status(StatusCodes.OK).json({ updated });
+};
+
+const deleteFruitById: RequestHandler = async (req, res) => {
+  const {
+    params: { id },
+  } = req;
+  const {
+    locals: { uid },
+  } = res;
+  const deletedFruit = await Fruit.findOneAndDelete<IFruit>({
+    _id: id,
+    owner: uid,
+  });
+  if (!deleteFruitById)
+    throw new CustomResponseError("No fruit to delete", StatusCodes.NOT_FOUND);
+  res.status(StatusCodes.OK).json({ deletedFruit });
+};
+
+export {
+  getAllFruits,
+  getFruitById,
+  postNewFruit,
+  updateFruit,
+  deleteFruitById,
+};

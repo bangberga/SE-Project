@@ -17,6 +17,7 @@ const errorHandlerMiddleware: ErrorRequestHandler = (err, req, res, next) => {
     customError.statusCode = StatusCodes.NOT_FOUND;
     customError.msg = `No item found with id "${err.value}"`;
   }
+
   // return res.status(500).json({ err });
   return res.status(customError.statusCode).json(customError);
 };
