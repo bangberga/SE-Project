@@ -64,7 +64,11 @@ export default function RegisterForm({ role }: { role: string }) {
       );
     } catch (error) {
       const err = error as AxiosError;
-      if (err.message === "Network Error") deleteUser(user);
+      if (err.message === "Network Error") return deleteUser(user);
+      if (err.response) {
+        const msg = (err.response.data as { msg: string }).msg;
+        setModal({ type: "error", show: true, msg });
+      }
     }
   }, []);
 
@@ -103,7 +107,6 @@ export default function RegisterForm({ role }: { role: string }) {
         }
         await register(user);
         setModal({ show: true, msg: "Register successfully", type: "success" });
-        setLoading(false);
         await sendEmailVerification(user);
       } catch (error) {
         const authErr = error as AuthError;
@@ -117,6 +120,8 @@ export default function RegisterForm({ role }: { role: string }) {
             });
             break;
         }
+      } finally {
+        setLoading(false);
       }
     },
     [imgFiles, level]
@@ -147,7 +152,7 @@ export default function RegisterForm({ role }: { role: string }) {
     if (modal.show) {
       timeout = setTimeout(() => {
         setModal((prev) => ({ ...prev, show: false }));
-      }, 2000);
+      }, 4000);
     }
     return () => {
       clearTimeout(timeout);

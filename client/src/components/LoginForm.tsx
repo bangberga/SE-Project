@@ -1,4 +1,11 @@
-import { ChangeEvent, FormEvent, useCallback, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  useCallback,
+  useRef,
+  useState,
+  useEffect,
+} from "react";
 import { Link } from "react-router-dom";
 import {
   browserLocalPersistence,
@@ -7,6 +14,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   inMemoryPersistence,
+  AuthError,
 } from "firebase/auth";
 import { auth } from "../utils/firebaseConfig";
 import styled from "styled-components";
@@ -14,7 +22,7 @@ import GoogleLoginButton from "../components/GoogleButton";
 import Checkbox from "./Checkbox";
 import { Modal } from "../interfaces/Modal";
 
-export default function LoginForm() {
+export default function LoginForm({ role }: { role: string }) {
   const googleProvider = new GoogleAuthProvider();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -36,7 +44,22 @@ export default function LoginForm() {
         if (remember) await setPersistence(auth, browserLocalPersistence);
         else await setPersistence(auth, inMemoryPersistence);
       } catch (error) {
-        // handle error
+        const err = error as AuthError;
+        switch (err.code) {
+          case "auth/wrong-password":
+            setModal({ type: "error", msg: "Wrong password!", show: true });
+            break;
+          case "auth/user-not-found":
+            setModal({ type: "error", msg: "Wrong email!", show: true });
+            break;
+          default:
+            setModal({
+              type: "error",
+              msg: "Something went wrong",
+              show: true,
+            });
+            break;
+        }
       } finally {
         setLoading(false);
       }
@@ -58,6 +81,18 @@ export default function LoginForm() {
     setRemember(e.target.checked);
   }, []);
 
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (modal.show) {
+      timeout = setTimeout(() => {
+        setModal((prev) => ({ ...prev, show: false }));
+      }, 4000);
+    }
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [modal.show]);
+
   return (
     <Wrapper>
       <form onSubmit={handleLogin}>
@@ -75,6 +110,13 @@ export default function LoginForm() {
           <span>Remember me</span>
         </div>
         <div>
+          {modal.show ? (
+            <p className={modal.type ? modal.type : ""}>{modal.msg}</p>
+          ) : (
+            ""
+          )}
+        </div>
+        <div>
           <button
             type="submit"
             className={"btn-primary block-btn"}
@@ -89,7 +131,13 @@ export default function LoginForm() {
           />
         </div>
         <p>
-          Forgot your password? <Link to="#">Reset here</Link>
+          Forgot your password?{" "}
+          <Link
+            to={`${role === "admin" ? "/admin" : ""}/forgotpassword`}
+            className="text-btn"
+          >
+            Reset here
+          </Link>
         </p>
       </form>
     </Wrapper>
@@ -102,6 +150,9 @@ const Wrapper = styled.section`
   align-items: center;
   p {
     margin: 0;
+    .text-btn {
+      color: var(--primaryColor);
+    }
   }
   form {
     background-color: var(--mainWhite);
