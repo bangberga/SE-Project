@@ -1,11 +1,19 @@
 import axios, { AxiosError } from "axios";
-import { useCallback, useState, FormEvent, ChangeEvent, useMemo } from "react";
+import {
+  useCallback,
+  useState,
+  FormEvent,
+  ChangeEvent,
+  useMemo,
+  useEffect,
+} from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { useAdmin } from "../../components/admin/AdminProvider";
 import { FruitReq } from "../../interfaces/Fruit";
 import { deleteImages, uploadImages } from "../../utils/storage";
 import { useStock } from "../../components/admin/StockProvider";
+import { Modal } from "../../interfaces/Modal";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
@@ -25,6 +33,7 @@ export default function SingleFruit() {
     description: fruit ? fruit.description : "",
   });
   const [loading, setLoading] = useState<boolean>(false);
+  const [modal, setModal] = useState<Modal>({ show: false, msg: "" });
 
   const handleSubmit = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
@@ -46,10 +55,12 @@ export default function SingleFruit() {
             Authorization: `Bearer ${await admin.getIdToken()}`,
           },
         });
+        setModal({ show: true, type: "success", msg: "Edit successfully!" });
       } catch (error) {
         const err = error as AxiosError;
-        if (err.status === 404) {
-          // handle error
+        if (err.response) {
+          const msg = (err.response.data as { msg: string }).msg;
+          setModal({ type: "error", show: true, msg: msg });
         }
       } finally {
         setLoading(false);
@@ -68,6 +79,18 @@ export default function SingleFruit() {
     },
     []
   );
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (modal.show) {
+      timeout = setTimeout(() => {
+        setModal((prev) => ({ ...prev, show: false }));
+      }, 3000);
+    }
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [modal.show]);
 
   if (!fruit)
     return (
@@ -136,6 +159,13 @@ export default function SingleFruit() {
             <img src={img} key={index} width={200} />
           ))}
         </div>
+        <div>
+          {modal.show ? (
+            <p className={modal.type ? modal.type : ""}>{modal.msg}</p>
+          ) : (
+            ""
+          )}
+        </div>
         <div className="btn-container">
           <button className="btn-primary" type="submit" disabled={loading}>
             {loading ? "Loading..." : "Edit"}
@@ -151,71 +181,71 @@ const Wrapper = styled.section`
   display: flex;
   justify-content: center;
   align-items: center;
-  .title {
-    color: var(--primaryColor);
-  }
-  label {
-    font-weight: bold;
-    color: var(--primaryColor);
-    display: block;
-  }
-  .text-input {
-    display: block;
-    width: 500px;
-    height: 40px;
-    border: none;
-    background-color: var(--mainBackground);
-    border-radius: var(--mainBorderRadius);
-    padding: 0 10px;
+  p {
+    margin: 0;
   }
   form {
     background-color: var(--mainWhite);
     box-shadow: var(--darkShadow);
     padding: 20px 30px;
-  }
-  div {
-    margin-bottom: 10px;
-  }
-  p {
-    margin: 0;
-  }
-  textarea {
-    width: 100%;
-    height: 50px;
-    resize: none;
-    padding: 5px;
-  }
-  .success,
-  .error {
-    display: flex;
-    justify-content: center;
-    height: var(--inputHeight);
-    border-radius: var(--mainBorderRadius);
-    align-items: center;
-  }
-  .success {
-    color: var(--mainGreen);
-    background-color: var(--mainLightGreen);
-  }
-  .error {
-    color: var(--mainRed);
-    background-color: var(--mainLightRed);
-  }
-  .img-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-    gap: 10px;
-  }
-  .img-container img {
-    width: 100%;
-    height: 70px;
-    object-fit: cover;
-    margin-top: 10px;
-  }
-  .btn-container {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-    align-items: center;
+    div {
+      margin-bottom: 10px;
+    }
+    label {
+      font-weight: bold;
+      color: var(--primaryColor);
+      display: block;
+    }
+    .title {
+      color: var(--primaryColor);
+    }
+    .text-input {
+      display: block;
+      width: 500px;
+      height: 40px;
+      border: none;
+      background-color: var(--mainBackground);
+      border-radius: var(--mainBorderRadius);
+      padding: 0 10px;
+    }
+    textarea {
+      width: 100%;
+      height: 50px;
+      resize: none;
+      padding: 5px;
+    }
+    .success,
+    .error {
+      display: flex;
+      justify-content: center;
+      height: var(--inputHeight);
+      border-radius: var(--mainBorderRadius);
+      align-items: center;
+    }
+    .success {
+      color: var(--mainGreen);
+      background-color: var(--mainLightGreen);
+    }
+    .error {
+      color: var(--mainRed);
+      background-color: var(--mainLightRed);
+    }
+    .img-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+      gap: 10px;
+    }
+    .img-container img {
+      width: 100%;
+      height: 70px;
+      object-fit: cover;
+      margin-top: 10px;
+    }
+    .btn-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      align-items: center;
+    }
   }
 `;

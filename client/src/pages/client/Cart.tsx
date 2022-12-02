@@ -32,9 +32,13 @@ export default function Cart() {
           ))}
         </div>
       )}
-      <Link to="/products" className="btn right">
-        Continue to shopping
-      </Link>
+      {cart.length ? (
+        <Link to="/products" className="btn right">
+          Continue to shopping
+        </Link>
+      ) : (
+        ""
+      )}
     </Wrapper>
   );
 }

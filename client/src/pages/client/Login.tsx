@@ -1,5 +1,5 @@
 import LoginForm from "../../components/LoginForm";
 
 export default function ClientLogin() {
-  return <LoginForm />;
+  return <LoginForm role="client" />;
 }

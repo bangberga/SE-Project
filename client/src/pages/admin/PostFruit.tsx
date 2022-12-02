@@ -1,10 +1,18 @@
-import axios from "axios";
-import { ChangeEvent, FormEvent, useCallback, useRef, useState } from "react";
+import axios, { AxiosError } from "axios";
+import {
+  ChangeEvent,
+  FormEvent,
+  useCallback,
+  useRef,
+  useState,
+  useEffect,
+} from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { useAdmin } from "../../components/admin/AdminProvider";
 import { uploadImages } from "../../utils/storage";
 import { FruitReq } from "../../interfaces/Fruit";
+import { Modal } from "../../interfaces/Modal";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
@@ -16,6 +24,7 @@ export default function PostFruitModal() {
   const quantityRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [modal, setModal] = useState<Modal>({ show: false, msg: "" });
 
   const handleSubmit = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
@@ -45,14 +54,31 @@ export default function PostFruitModal() {
             Authorization: `Bearer ${await admin.getIdToken()}`,
           },
         });
+        setModal({ show: true, type: "success", msg: "New fruit added!" });
       } catch (error) {
-        //handle error
+        const err = error as AxiosError;
+        if (err.response) {
+          const msg = (err.response.data as { msg: string }).msg;
+          setModal({ type: "error", show: true, msg: msg });
+        }
       } finally {
         setLoading(false);
       }
     },
     [imgFiles]
   );
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (modal.show) {
+      timeout = setTimeout(() => {
+        setModal((prev) => ({ ...prev, show: false }));
+      }, 3000);
+    }
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [modal.show]);
 
   const handleChangeFiles = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setImgFiles(e.target.files);
@@ -103,6 +129,13 @@ export default function PostFruitModal() {
             multiple={true}
             onChange={handleChangeFiles}
           />
+        </div>
+        <div>
+          {modal.show ? (
+            <p className={modal.type ? modal.type : ""}>{modal.msg}</p>
+          ) : (
+            ""
+          )}
         </div>
         <div className="btn-container">
           <button type="submit" className="btn-primary" disabled={loading}>
