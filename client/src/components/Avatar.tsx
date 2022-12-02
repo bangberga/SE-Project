@@ -41,6 +41,9 @@ export default function Avatar({ src }: { src: string | null }) {
 const Wrapper = styled.div`
   position: relative;
   margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   .avatar {
     border-radius: 50%;
     object-fit: cover;

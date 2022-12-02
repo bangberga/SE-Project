@@ -50,7 +50,7 @@ export default function RegisterForm({ role }: { role: string }) {
     setImgFiles(e.target.files);
   }, []);
 
-  const register = useCallback(async (user: User) => {
+  const register = useCallback(async (user: User, flag = true) => {
     try {
       const token = await user.getIdToken();
       await axios.post(
@@ -62,12 +62,18 @@ export default function RegisterForm({ role }: { role: string }) {
           },
         }
       );
+      setModal({ show: true, msg: "Register successfully", type: "success" });
     } catch (error) {
       const err = error as AxiosError;
-      if (err.message === "Network Error") return deleteUser(user);
-      if (err.response) {
-        const msg = (err.response.data as { msg: string }).msg;
-        setModal({ type: "error", show: true, msg });
+      const response = err.response as { data: any; status: number };
+      if (err.message === "Network Error") return flag && deleteUser(user);
+      if (response.status === 429) {
+        setModal({ type: "error", show: true, msg: response.data });
+        return flag && deleteUser(user);
+      }
+      if (response.status === 400) {
+        setModal({ type: "error", show: true, msg: response.data.msg });
+        return;
       }
     }
   }, []);
@@ -106,7 +112,6 @@ export default function RegisterForm({ role }: { role: string }) {
           await updateProfile(user, { photoURL: fileNames[0] });
         }
         await register(user);
-        setModal({ show: true, msg: "Register successfully", type: "success" });
         await sendEmailVerification(user);
       } catch (error) {
         const authErr = error as AuthError;
@@ -130,7 +135,7 @@ export default function RegisterForm({ role }: { role: string }) {
   const handleRegisterWithGoogle = useCallback(async () => {
     try {
       const { user } = await signInWithPopup(auth, googleProvider);
-      await register(user);
+      await register(user, false);
     } catch (error) {
       const authErr = error as AuthError;
       const errorCode = authErr.code;
