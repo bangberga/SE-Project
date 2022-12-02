@@ -6,7 +6,24 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimiter from "express-rate-limit";
 import express from "express";
+import { ServiceAccount } from "firebase-admin";
 import Pusher from "pusher";
+
+import connectDB from "./db/connect";
+
+import authRouter from "./routes/auth";
+import fruitRouter from "./routes/fruit";
+import orderRouter from "./routes/order";
+import transactionRouter from "./routes/transaction";
+
+import notFoundMiddleware from "./middlewares/not-found";
+import errorHandlerMiddleware from "./middlewares/error-handler";
+import {
+  fruitsChangeStream,
+  ordersChangeStream,
+  transactionsChangeStream,
+} from "./db/pusher";
+
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID as string,
   key: process.env.PUSHER_KEY as string,
@@ -15,17 +32,6 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
-import connectDB from "./db/connect";
-
-import authRouter from "./routes/auth";
-import fruitRouter from "./routes/fruit";
-import transactionRouter from "./routes/transaction";
-
-import notFoundMiddleware from "./middlewares/not-found";
-import errorHandlerMiddleware from "./middlewares/error-handler";
-import { ServiceAccount } from "firebase-admin";
-import { fruitsChangeStream } from "./db/pusher";
-
 const app = express();
 
 app.set("trust proxy", 1);
@@ -33,6 +39,7 @@ app.use(
   rateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+    message: "You can only make 100 requests every 15 minutes",
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   })
@@ -42,10 +49,24 @@ app.use(express.json());
 app.use(helmet());
 app.use(cors());
 app.use(require("xss-clean")());
+app.use((req, res, next) => {
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    process.env.CLIENT_URL || "http://127.0.0.1:5173"
+  );
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers"
+  );
+  next();
+});
 
 // Routes
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/fruits", fruitRouter);
+app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/transactions", transactionRouter);
 
 // Middlewares
@@ -66,6 +87,8 @@ const PORT = process.env.PORT || 3000;
         console.log(`Server is listening on PORT ${PORT}...`)
       );
       fruitsChangeStream(pusher);
+      ordersChangeStream(pusher);
+      transactionsChangeStream(pusher);
     } else throw Error("URI is not found");
   } catch (error) {
     console.error(error);

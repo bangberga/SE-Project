@@ -53,6 +53,8 @@ const getAllFruits: RequestHandler = async (req, res) => {
     ownerDetail = await Promise.all(fruits.map((fruit) => fruit.getOwner()));
     return res.status(StatusCodes.OK).json({ fruits, ownerDetail });
   }
+  if (fruits.length === 0)
+    throw new CustomResponseError("No fruits found", StatusCodes.NOT_FOUND);
   res.status(StatusCodes.OK).json({ fruits });
 };
 

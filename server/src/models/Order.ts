@@ -1,6 +1,13 @@
-import { Schema, model, SchemaDefinition, Types } from "mongoose";
+import { Schema, model, SchemaDefinition, Types, Model } from "mongoose";
 import IOrder from "../interfaces/models/IOrder";
 import IFruit from "../interfaces/models/IFruit";
+import { getAuth, UserRecord } from "firebase-admin/auth";
+
+interface OrderMethods {
+  getBuyer(): Promise<UserRecord>;
+}
+
+type OrderModel = Model<IOrder, {}, OrderMethods>;
 
 const schemaDefinition: SchemaDefinition<IOrder> = {
   userId: {
@@ -30,6 +37,13 @@ const schemaDefinition: SchemaDefinition<IOrder> = {
   },
 };
 
-const OrderSchema = new Schema<IOrder>(schemaDefinition, { timestamps: true });
+const OrderSchema = new Schema<IOrder, OrderModel, OrderMethods>(
+  schemaDefinition,
+  { timestamps: true }
+);
+
+OrderSchema.methods.getBuyer = function () {
+  return getAuth().getUser(this.userId);
+};
 
 export default model("Order", OrderSchema);

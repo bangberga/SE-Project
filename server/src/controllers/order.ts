@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import Order from "../models/Order";
 import CustomResponseError from "../errors/CustomResponseError";
 import { StatusCodes } from "http-status-codes";
+import { PopulateOptions } from "mongoose";
 
 const postNewOrder: RequestHandler = async (req, res, next) => {
   const {
@@ -18,4 +19,19 @@ const postNewOrder: RequestHandler = async (req, res, next) => {
   next();
 };
 
-export { postNewOrder };
+const getOrderById: RequestHandler = async (req, res) => {
+  const {
+    params: { id },
+  } = req;
+  const order = await Order.findById(id).populate({
+    path: "listOfFruits.fruitId",
+  } as PopulateOptions);
+  if (!order)
+    throw new CustomResponseError(
+      `No order found with id ${id}`,
+      StatusCodes.NOT_FOUND
+    );
+  res.status(StatusCodes.OK).json({ order, buyer: await order.getBuyer() });
+};
+
+export { postNewOrder, getOrderById };

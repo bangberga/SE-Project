@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { StatusCodes } from "http-status-codes";
-import { FilterQuery } from "mongoose";
+import { FilterQuery, PopulateOptions } from "mongoose";
 import CustomResponseError from "../errors/CustomResponseError";
 import ITransaction from "../interfaces/models/ITransaction";
 import Fruit from "../models/Fruit";
@@ -43,7 +43,7 @@ const postNewTransaction: RequestHandler = async (req, res) => {
 // admin: get all transactions belong to admin
 const getAllTransactions: RequestHandler = async (req, res) => {
   const {
-    query: { status, paymentMethod },
+    query: { status, paymentMethod, sort },
   } = req;
   const {
     locals: { uid },
@@ -58,7 +58,12 @@ const getAllTransactions: RequestHandler = async (req, res) => {
   if (paymentMethod && typeof paymentMethod === "string") {
     queryObj.paymentMethod = paymentMethod;
   }
-  const transactions = await Transaction.find(queryObj).populate("orderId");
+  const result = Transaction.find(queryObj);
+  if (sort && typeof sort === "string") {
+    let sortList = sort.split(",").join(" ");
+    result.sort(sortList);
+  }
+  const transactions = await result;
   if (transactions.length === 0)
     throw new CustomResponseError(
       "No transaction found",
