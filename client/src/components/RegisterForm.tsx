@@ -65,8 +65,8 @@ export default function RegisterForm({ role }: { role: string }) {
       setModal({ show: true, msg: "Register successfully", type: "success" });
     } catch (error) {
       const err = error as AxiosError;
-      const response = err.response as { data: any; status: number };
       if (err.message === "Network Error") return flag && deleteUser(user);
+      const response = err.response as { data: any; status: number };
       if (response.status === 429) {
         setModal({ type: "error", show: true, msg: response.data });
         return flag && deleteUser(user);
