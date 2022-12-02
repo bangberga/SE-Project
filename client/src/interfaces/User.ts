@@ -1,9 +1,9 @@
 type Owner = {
   customClaims: { admin: boolean };
-  displayName?: string;
+  uid: string;
   email: string;
   photoURL: string;
-  uid: string;
+  displayName?: string;
   disabled: boolean;
 };
 
