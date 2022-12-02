@@ -1,9 +1,15 @@
 import styled from "styled-components";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 
 export default function ComingSoon() {
   return (
     <Wrapper>
-      <img src="/plane.png" alt="plane" />
+      <LazyLoadImage
+        src="/plane.png"
+        placeholderSrc="/plane.png"
+        effect="blur"
+        alt="plane"
+      />
       <h2>Coming Soon...</h2>
     </Wrapper>
   );

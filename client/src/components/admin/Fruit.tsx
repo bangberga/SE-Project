@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 import { FruitRes } from "../../interfaces/Fruit";
 import { useStock } from "./StockProvider";
 import { formatDate, interval } from "../../utils/formatDate";
@@ -18,7 +19,13 @@ export default function Fruit({
   const { handleDeleteFruit } = useStock();
   return (
     <Card>
-      <img src={image[0]} alt="fruit image" className="item-img" />
+      <LazyLoadImage
+        src={image[0]}
+        alt="fruit image"
+        effect="blur"
+        className="item-img"
+        placeholderSrc={image[0]}
+      />
       <div className="body">
         <div>
           <header className="header">

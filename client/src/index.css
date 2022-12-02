@@ -98,7 +98,8 @@ Buttons
 */
 .btn,
 .btn-white,
-.btn-primary {
+.btn-primary,
+.btn-warning {
   text-transform: uppercase;
   letter-spacing: var(--mainSpacing);
   color: var(--primaryColor);
@@ -134,6 +135,15 @@ Buttons
   background: var(--primaryLightColor);
   color: var(--primaryColor);
 }
+.btn-warning {
+  background: var(--mainRed);
+  color: var(--mainWhite);
+  border: none;
+}
+.btn-warning:hover {
+  background: var(--mainLightRed);
+  color: var(--mainRed);
+}
 .btn-block {
   width: 100%;
   display: block;
@@ -155,4 +165,11 @@ Buttons
   border-radius: 10px;
   background-color: var(--primaryColor);
   margin: 20px auto;
+}
+
+.highlight {
+  font-weight: bold;
+}
+.italic {
+  font-style: italic;
 }

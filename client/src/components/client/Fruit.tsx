@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { MdOutlineAddShoppingCart } from "react-icons/md";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 import { FruitRes } from "../../interfaces/Fruit";
 import { formatDate } from "../../utils/formatDate";
 import styled from "styled-components";
@@ -15,7 +16,13 @@ export default function Fruit({ fruit }: { fruit: FruitRes }) {
 
   return (
     <Card>
-      <img src={image[0]} alt="fruit image" className="item-img" />
+      <LazyLoadImage
+        src={image[0]}
+        placeholderSrc={image[0]}
+        alt="fruit image"
+        className="item-img"
+        effect="blur"
+      />
       <div className="body">
         <div>
           <header className="header">

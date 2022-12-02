@@ -14,9 +14,18 @@ export default function Navigation() {
         <li>
           <NavLink to="/admin">Home</NavLink>
         </li>
-        <li>
-          <NavLink to="/admin/stock">My stock</NavLink>
-        </li>
+        {admin ? (
+          <>
+            <li>
+              <NavLink to="/admin/stock">My stock</NavLink>
+            </li>
+            <li>
+              <NavLink to="/admin/transactions">My transactions</NavLink>
+            </li>
+          </>
+        ) : (
+          ""
+        )}
         {admin ? (
           ""
         ) : (

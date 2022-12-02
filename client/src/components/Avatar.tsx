@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { signOut } from "firebase/auth";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 import { auth } from "../utils/firebaseConfig";
 
 import styled from "styled-components";
@@ -17,11 +18,14 @@ export default function Avatar({ src }: { src: string | null }) {
 
   return (
     <Wrapper>
-      <img
+      <LazyLoadImage
         src={src ? src : "/default profile picture.jpg"}
+        placeholderSrc={src ? src : "/default profile picture.jpg"}
         className="avatar"
-        alt="avatar"
         onClick={handleShow}
+        width={40}
+        height={40}
+        effect="blur"
       />
       {showModal ? (
         <div className="modal">
@@ -38,8 +42,6 @@ const Wrapper = styled.div`
   position: relative;
   margin: 0;
   .avatar {
-    width: 40px;
-    height: 40px;
     border-radius: 50%;
     object-fit: cover;
     cursor: pointer;

@@ -50,7 +50,8 @@ export default function ClientProvider() {
               msg: string;
               statusCode: number;
             };
-            if (data.msg === "Must register befrore getting claims") return;
+            if (data.msg === "Must register befrore getting claims")
+              return signOut(auth);
           }
           signOut(auth);
         }

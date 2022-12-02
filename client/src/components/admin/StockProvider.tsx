@@ -16,20 +16,24 @@ const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
 type IStockContext = {
   fruits: FruitRes[];
+  loading: boolean;
   handleDeleteFruit: (id: string) => Promise<void>;
 };
 
 const StockContext = createContext<IStockContext>({
   fruits: [],
+  loading: false,
   handleDeleteFruit: (id) => Promise.resolve(),
 });
 
 export default function Stock() {
   const { admin } = useAdmin();
   const [fruits, setFruits] = useState<FruitRes[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const fetchFruits = useCallback(async () => {
     if (!admin) return;
+    setLoading(true);
     try {
       const {
         data: { fruits },
@@ -42,6 +46,8 @@ export default function Stock() {
       if (err.status === 404) {
         // handle error not found
       }
+    } finally {
+      setLoading(false);
     }
   }, [admin]);
 
@@ -104,19 +110,19 @@ export default function Stock() {
     return () => {
       pusher.unsubscribe("fruits");
     };
-  }, [addFruits, deleteFruit]);
+  }, [addFruits, deleteFruit, updateFruits]);
 
   useEffect(() => {
     fetchFruits();
-  }, []);
+  }, [fetchFruits]);
 
   return (
-    <StockContext.Provider value={{ fruits, handleDeleteFruit }}>
+    <StockContext.Provider value={{ fruits, loading, handleDeleteFruit }}>
       <Outlet />
     </StockContext.Provider>
   );
 }
 
 export function useStock() {
-  return useContext(StockContext);
+  return useContext<IStockContext>(StockContext);
 }

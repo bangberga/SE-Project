@@ -122,7 +122,7 @@ export default function LoginForm({ role }: { role: string }) {
             className={"btn-primary block-btn"}
             disabled={loading}
           >
-            Login
+            {loading ? "Loading..." : "Login"}
           </button>
           <GoogleLoginButton
             handle={handleLoginWithGoogle}

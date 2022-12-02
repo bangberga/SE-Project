@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { RiDeleteBin6Line } from "react-icons/ri";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 import { FilteredCart } from "../../interfaces/Cart";
 import { UserRes } from "../../interfaces/User";
 import { useClient } from "./ClientProvider";
@@ -49,11 +50,15 @@ export default function FruitCart({
       <Card>
         {user ? (
           <header className="owner-info">
-            <img
+            <LazyLoadImage
               src={
                 user.photoURL ? user.photoURL : "/default profile picture.jpg"
               }
+              placeholderSrc={
+                user.photoURL ? user.photoURL : "/default profile picture.jpg"
+              }
               alt="photo"
+              effect="blur"
             />
             <p>{user.email}</p>
           </header>
@@ -76,7 +81,13 @@ export default function FruitCart({
               return (
                 <article key={_id} className="cart-item">
                   <div className="item">
-                    <img src={image[0]} alt="photo" className="cart-img" />
+                    <LazyLoadImage
+                      src={image[0]}
+                      placeholderSrc={image[0]}
+                      alt="photo"
+                      className="cart-img"
+                      effect="blur"
+                    />
                     <h4>{name}</h4>
                   </div>
                   <p className="price">${price}</p>

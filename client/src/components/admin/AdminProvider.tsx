@@ -50,7 +50,8 @@ export default function AdminProvider() {
               msg: string;
               statusCode: number;
             };
-            if (data.msg === "Must register befrore getting claims") return;
+            if (data.msg === "Must register befrore getting claims")
+              return signOut(auth);
           }
           signOut(auth);
         }
@@ -67,5 +68,5 @@ export default function AdminProvider() {
 }
 
 export function useAdmin() {
-  return useContext(AppContext);
+  return useContext<ContextType>(AppContext);
 }

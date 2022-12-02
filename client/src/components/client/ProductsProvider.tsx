@@ -14,17 +14,17 @@ import { CartItem } from "../../interfaces/Cart";
 import {
   getCartFromLocalStorage,
   setNewCartFromLocalStorage,
-} from "../../utils/localstorage";
+} from "../../utils/localStorage";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
 type IProductsContext = {
   fruits: FruitRes[];
+  loading: boolean;
   cart: CartItem[];
   addToCart: (fruit: CartItem) => void;
   deleteFromCart: (id: string) => void;
   deleteFromCartByOwner: (ownerId: string) => void;
-  loading: boolean;
   handleSearchQuery: (e: ChangeEvent<HTMLInputElement>) => void;
 };
 
@@ -115,11 +115,10 @@ export default function ProductsProvider() {
   }, []);
 
   useEffect(() => {
-    const query = decodeURIComponent(location.search);
     const controller = new AbortController();
     setLoading(true);
     axios
-      .get(`${baseUrl}/api/v1/fruits${query}`, {
+      .get(`${baseUrl}/api/v1/fruits${decodeURIComponent(location.search)}`, {
         signal: controller.signal,
       })
       .then((response) => {
