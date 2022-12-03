@@ -33,6 +33,7 @@ export default function RegisterForm({ role }: { role: string }) {
   const googleProvider = new GoogleAuthProvider();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const rePasswordRef = useRef<HTMLInputElement>(null);
   const [imgFiles, setImgFiles] = useState<FileList | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [level, setLevel] = useState<"STRONG" | "MEDIUM" | "WEAK" | null>(null);
@@ -50,40 +51,51 @@ export default function RegisterForm({ role }: { role: string }) {
     setImgFiles(e.target.files);
   }, []);
 
-  const register = useCallback(async (user: User, flag = true) => {
-    try {
-      const token = await user.getIdToken();
-      await axios.post(
-        `${baseUrl}/api/v1/auth/register?role=${role}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+  const register = useCallback(
+    async (user: User, flag = true) => {
+      try {
+        await axios.post(
+          `${baseUrl}/api/v1/auth/register?role=${role}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${await user.getIdToken()}`,
+            },
+          }
+        );
+        if (imgFiles?.length && flag) {
+          const fileNames = await uploadImages(
+            imgFiles,
+            `${user.uid}/profilePicture/`
+          );
+          await updateProfile(user, { photoURL: fileNames[0] });
         }
-      );
-      setModal({ show: true, msg: "Register successfully", type: "success" });
-    } catch (error) {
-      const err = error as AxiosError;
-      if (err.message === "Network Error") return flag && deleteUser(user);
-      const response = err.response as { data: any; status: number };
-      if (response.status === 429) {
-        setModal({ type: "error", show: true, msg: response.data });
-        return flag && deleteUser(user);
+        setModal({ show: true, msg: "Register successfully", type: "success" });
+      } catch (error) {
+        const err = error as AxiosError;
+        if (err.message === "Network Error") return flag && deleteUser(user);
+        const response = err.response as { data: any; status: number };
+        if (response.status === 429) {
+          setModal({ type: "error", show: true, msg: response.data });
+          return flag && deleteUser(user);
+        }
+        if (response.status === 400) {
+          setModal({ type: "error", show: true, msg: response.data.msg });
+          return;
+        }
       }
-      if (response.status === 400) {
-        setModal({ type: "error", show: true, msg: response.data.msg });
-        return;
-      }
-    }
-  }, []);
+    },
+    [imgFiles]
+  );
 
   const handleRegister = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      if (!emailRef.current || !passwordRef.current) return;
+      if (!emailRef.current || !passwordRef.current || !rePasswordRef.current)
+        return;
       const email = emailRef.current.value;
       const password = passwordRef.current.value;
+      const rePassword = rePasswordRef.current.value;
       if (!email || !password) {
         setModal({
           show: true,
@@ -96,6 +108,14 @@ export default function RegisterForm({ role }: { role: string }) {
         setModal({ show: true, msg: "Weak password", type: "error" });
         return;
       }
+      if (password !== rePassword) {
+        setModal({
+          show: true,
+          msg: "Password does not match!",
+          type: "error",
+        });
+        return;
+      }
       setLoading(true);
       setModal({ show: false, msg: "" });
       try {
@@ -104,13 +124,6 @@ export default function RegisterForm({ role }: { role: string }) {
           email,
           password
         );
-        if (imgFiles?.length) {
-          const fileNames = await uploadImages(
-            imgFiles,
-            `${user.uid}/profilePicture/`
-          );
-          await updateProfile(user, { photoURL: fileNames[0] });
-        }
         await register(user);
         await sendEmailVerification(user);
       } catch (error) {
@@ -129,7 +142,7 @@ export default function RegisterForm({ role }: { role: string }) {
         setLoading(false);
       }
     },
-    [imgFiles, level]
+    [level, register]
   );
 
   const handleRegisterWithGoogle = useCallback(async () => {
@@ -197,6 +210,7 @@ export default function RegisterForm({ role }: { role: string }) {
           <input
             type="password"
             name="re-password"
+            ref={rePasswordRef}
             onPaste={preventPaste}
             onCopy={preventCopy}
             className="text-input"
