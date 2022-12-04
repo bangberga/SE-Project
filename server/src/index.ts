@@ -22,9 +22,6 @@ import {
   ordersChangeStream,
   transactionsChangeStream,
 } from "./db/pusher";
-import Order from "./models/Order";
-import Transaction from "./models/Transaction";
-import Fruit from "./models/Fruit";
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID as string,

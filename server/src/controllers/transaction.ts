@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { StatusCodes } from "http-status-codes";
-import { FilterQuery, PopulateOptions } from "mongoose";
+import { FilterQuery } from "mongoose";
 import CustomResponseError from "../errors/CustomResponseError";
 import ITransaction from "../interfaces/models/ITransaction";
 import Fruit from "../models/Fruit";
