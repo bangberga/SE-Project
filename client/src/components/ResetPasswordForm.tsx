@@ -44,7 +44,7 @@ export default function ResetPasswordForm() {
     } catch (error) {
       setError(true);
     }
-  }, [actionCode, modal.show]);
+  }, [actionCode]);
 
   const handleConfirmPassword = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
@@ -55,14 +55,8 @@ export default function ResetPasswordForm() {
         setModal({ show: true, msg: "Weak password", type: "error" });
         return;
       }
-      if (!actionCode)
-        return setModal({
-          show: true,
-          msg: "Missing action code!",
-          type: "error",
-        });
       try {
-        await confirmPasswordReset(auth, actionCode, password.value);
+        await confirmPasswordReset(auth, actionCode as string, password.value);
         setModal({ show: true, msg: "Password reseted!", type: "success" });
       } catch (error) {
         const err = error as AuthError;

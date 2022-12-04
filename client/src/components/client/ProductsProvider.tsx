@@ -64,6 +64,22 @@ export default function ProductsProvider() {
     setFruits((prev) => [...prev, fruit]);
   }, []);
 
+  const updateFromCart = useCallback((id: string, fields: any) => {
+    setCart((prev) =>
+      (
+        prev.map((item) => {
+          if (item._id !== id) return item;
+          const newItem = { ...item, ...fields };
+          const { quantity } = fields;
+          if (quantity !== undefined && typeof quantity === "number")
+            if (quantity < newItem.purchaseQuantity)
+              newItem.purchaseQuantity = quantity;
+          return newItem;
+        }) as CartItem[]
+      ).filter((item) => item.quantity !== 0)
+    );
+  }, []);
+
   const updateFruits = useCallback(
     ({ _id, fields }: { _id: string; fields: any }) => {
       setFruits((prev) =>
@@ -71,21 +87,9 @@ export default function ProductsProvider() {
           fruit._id === _id ? { ...fruit, ...fields } : fruit
         )
       );
-      setCart((prev) =>
-        (
-          prev.map((item) => {
-            if (item._id !== _id) return item;
-            const newItem = { ...item, ...fields };
-            const { quantity } = fields;
-            if (quantity !== undefined && typeof quantity === "number")
-              if (quantity < newItem.purchaseQuantity)
-                newItem.purchaseQuantity = quantity;
-            return newItem;
-          }) as CartItem[]
-        ).filter((item) => item.quantity !== 0)
-      );
+      updateFromCart(_id, fields);
     },
-    []
+    [updateFromCart]
   );
 
   const deleteFromCart = useCallback((id: string) => {
@@ -96,10 +100,13 @@ export default function ProductsProvider() {
     setCart((prev) => prev.filter((item) => item.owner !== ownerId));
   }, []);
 
-  const deleteFruit = useCallback((id: string) => {
-    setFruits((prev) => prev.filter((fruit) => fruit._id !== id));
-    deleteFromCart(id);
-  }, []);
+  const deleteFruit = useCallback(
+    (id: string) => {
+      setFruits((prev) => prev.filter((fruit) => fruit._id !== id));
+      deleteFromCart(id);
+    },
+    [deleteFromCart]
+  );
 
   useEffect(() => {
     const pusher = new Pusher(import.meta.env.VITE_APP_PUSHER_KEY, {
