@@ -4,6 +4,7 @@ import {
   getTransactionById,
   postNewTransaction,
   updateTransaction,
+  deleteTransaction,
 } from "../controllers/transaction";
 import { postNewOrder } from "../controllers/order";
 import verifyTokenMiddleware from "../middlewares/verify-token";
@@ -16,6 +17,10 @@ router
   .route("/")
   .get(getAllTransactions)
   .post(determineCustomClaims, postNewOrder, postNewTransaction);
-router.route("/:id").get(getTransactionById).patch(updateTransaction);
+router
+  .route("/:id")
+  .get(getTransactionById)
+  .patch(updateTransaction)
+  .delete(deleteTransaction);
 
 export default router;

@@ -1,7 +1,9 @@
 import { RequestHandler } from "express";
 import { getAuth } from "firebase-admin/auth";
 import { StatusCodes } from "http-status-codes";
+import instanceOfEnum from "../utils/instanceOfEnum";
 import CustomResponseError from "../errors/CustomResponseError";
+import { Role } from "../interfaces/models/IUser";
 
 const register: RequestHandler = async (req, res) => {
   const {
@@ -11,15 +13,18 @@ const register: RequestHandler = async (req, res) => {
     locals: { uid },
   } = res;
   const user = await getAuth().getUser(uid);
-  if (typeof user.customClaims?.admin === "boolean")
+  if (user.customClaims && user.customClaims.role)
     throw new CustomResponseError(
       "Account has already registered!",
       StatusCodes.BAD_REQUEST
     );
-  if (typeof role === "string" && role === "admin")
-    await getAuth().setCustomUserClaims(uid, { admin: true });
-  else await getAuth().setCustomUserClaims(uid, { admin: false });
-
+  if (typeof role === "string" && instanceOfEnum(Role, role))
+    await getAuth().setCustomUserClaims(uid, { role });
+  else
+    throw new CustomResponseError(
+      "Missing or invalid role",
+      StatusCodes.BAD_REQUEST
+    );
   res.status(StatusCodes.CREATED).json({ user });
 };
 
@@ -27,7 +32,7 @@ const getRole: RequestHandler = (req, res) => {
   const {
     locals: { customClaims },
   } = res;
-  res.status(StatusCodes.OK).json({ admin: customClaims.admin });
+  res.status(StatusCodes.OK).json({ role: customClaims.role });
 };
 
 const getUser: RequestHandler = async (req, res) => {

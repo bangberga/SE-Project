@@ -1,6 +1,8 @@
 import { Schema, model, SchemaDefinition, Types } from "mongoose";
 import validatePhoneNumber from "../utils/validatePhoneNumber";
 import ITransaction from "../interfaces/models/ITransaction";
+import Order from "./Order";
+import IOrder from "../interfaces/models/IOrder";
 
 const schemaDefinition: SchemaDefinition<ITransaction> = {
   adminId: {
@@ -50,10 +52,19 @@ const schemaDefinition: SchemaDefinition<ITransaction> = {
     },
     default: "in cash",
   },
+  view: {
+    type: Boolean,
+    default: false,
+  },
 };
 
 const TransactionSchema = new Schema<ITransaction>(schemaDefinition, {
   timestamps: true,
+});
+
+// delete the order that belong to the transaction
+TransactionSchema.post("findOneAndDelete", async function (res, next) {
+  await Order.findOneAndDelete<IOrder>({ _id: res.orderId });
 });
 
 export default model("Transaction", TransactionSchema);

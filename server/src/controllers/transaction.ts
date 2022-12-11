@@ -58,7 +58,7 @@ const getAllTransactions: RequestHandler = async (req, res) => {
   if (paymentMethod && typeof paymentMethod === "string") {
     queryObj.paymentMethod = paymentMethod;
   }
-  const result = Transaction.find(queryObj);
+  const result = Transaction.find<ITransaction>(queryObj);
   if (sort && typeof sort === "string") {
     let sortList = sort.split(",").join(" ");
     result.sort(sortList);
@@ -81,7 +81,7 @@ const updateTransaction: RequestHandler = async (req, res) => {
   const {
     locals: { uid },
   } = res;
-  const updatedTransaction = await Transaction.findOneAndUpdate(
+  const updatedTransaction = await Transaction.findOneAndUpdate<ITransaction>(
     { _id: id, adminId: uid },
     body,
     { runValidators: true, new: true }
@@ -92,6 +92,25 @@ const updateTransaction: RequestHandler = async (req, res) => {
       StatusCodes.NOT_FOUND
     );
   res.status(StatusCodes.OK).json({ updatedTransaction });
+};
+
+const deleteTransaction: RequestHandler = async (req, res) => {
+  const {
+    params: { id },
+  } = req;
+  const {
+    locals: { uid },
+  } = res;
+  const deletedTransaction = await Transaction.findOneAndDelete<ITransaction>({
+    _id: id,
+    adminId: uid,
+  });
+  if (!deletedTransaction)
+    throw new CustomResponseError(
+      `No transaction with id ${id} to delete`,
+      StatusCodes.NOT_FOUND
+    );
+  res.status(StatusCodes.OK).json({ deletedTransaction });
 };
 
 // get specific transaction of admin or buyer
@@ -119,4 +138,5 @@ export {
   getTransactionById,
   updateTransaction,
   postNewTransaction,
+  deleteTransaction,
 };

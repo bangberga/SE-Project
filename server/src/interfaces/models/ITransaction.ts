@@ -8,4 +8,5 @@ export default interface ITransaction {
   orderId: typeof Types.ObjectId;
   status: "pending" | "success" | "fail";
   paymentMethod: "in cash" | "paypal";
+  view: boolean;
 }

@@ -64,6 +64,9 @@ function transactionsChangeStream(pusher: Pusher) {
           fields: change.updateDescription.updatedFields,
         });
         break;
+      case "delete":
+        pusher.trigger(channel, "delete transaction", change.documentKey._id);
+        break;
       default:
         break;
     }

@@ -9,7 +9,7 @@ const postNewOrder: RequestHandler = async (req, res, next) => {
     locals: { uid, customClaims },
   } = res;
   const { body } = req;
-  if (customClaims.admin)
+  if (customClaims.role === "admin")
     throw new CustomResponseError(
       "Not allowed because you are an admin",
       StatusCodes.METHOD_NOT_ALLOWED

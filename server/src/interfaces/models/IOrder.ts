@@ -1,6 +1,9 @@
-import IFruit from "./IFruit";
+import { Types } from "mongoose";
 
 export default interface IOrder {
   userId: string;
-  listOfFruits: IFruit[];
+  listOfFruits: {
+    fruitId: typeof Types.ObjectId;
+    quantity: number;
+  }[];
 }

@@ -11,7 +11,6 @@ const verifyTokenMiddleware: RequestHandler = async (req, res, next) => {
       StatusCodes.UNAUTHORIZED
     );
   const token = authHeader.split(" ")[1];
-
   try {
     const decodedToken = await getAuth().verifyIdToken(token);
     res.locals.uid = decodedToken.uid;

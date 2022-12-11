@@ -76,7 +76,7 @@ const postNewFruit: RequestHandler = async (req, res) => {
   const {
     locals: { uid, customClaims },
   } = res;
-  if (!customClaims.admin)
+  if (customClaims.role !== "admin")
     throw new CustomResponseError(
       "Not allowed",
       StatusCodes.METHOD_NOT_ALLOWED
