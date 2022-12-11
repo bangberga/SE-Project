@@ -1,8 +1,8 @@
 import { Outlet, Navigate } from "react-router-dom";
-import { useClient } from "./ClientProvider";
+import { useUser } from "../context/UserProvider";
 
 export default function ProtectedRoute() {
-  const { client } = useClient();
+  const { user: client } = useUser();
 
   return client ? <Outlet /> : <Navigate to="/login" />;
 }

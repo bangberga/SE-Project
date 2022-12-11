@@ -9,7 +9,7 @@ import {
 } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { useAdmin } from "../../components/admin/AdminProvider";
+import { useUser } from "../../components/context/UserProvider";
 import { uploadImages } from "../../utils/storage";
 import { FruitReq } from "../../interfaces/Fruit";
 import { Modal } from "../../interfaces/Modal";
@@ -18,7 +18,7 @@ const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
 export default function PostFruitModal() {
   const [imgFiles, setImgFiles] = useState<FileList | null>();
-  const { admin } = useAdmin();
+  const { user } = useUser();
   const nameRef = useRef<HTMLInputElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
   const quantityRef = useRef<HTMLInputElement>(null);
@@ -36,7 +36,7 @@ export default function PostFruitModal() {
         quantityRef.current,
         descriptionRef.current,
       ];
-      if (!name || !price || !quantity || !description || !admin) return;
+      if (!name || !price || !quantity || !description || !user) return;
       if (isNaN(Number(price.value))) return;
       const body: FruitReq = {
         name: name.value,
@@ -51,7 +51,7 @@ export default function PostFruitModal() {
       try {
         await axios.post(`${baseUrl}/api/v1/fruits`, body, {
           headers: {
-            Authorization: `Bearer ${await admin.getIdToken()}`,
+            Authorization: `Bearer ${await user.getIdToken()}`,
           },
         });
         setModal({ show: true, type: "success", msg: "New fruit added!" });
@@ -65,7 +65,7 @@ export default function PostFruitModal() {
         setLoading(false);
       }
     },
-    [imgFiles]
+    [imgFiles, user]
   );
 
   useEffect(() => {

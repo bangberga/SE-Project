@@ -6,6 +6,7 @@ import { formatDate } from "../../utils/formatDate";
 import styled from "styled-components";
 import ShowHideText from "../ShowHideText";
 import AddModal from "./AddModal";
+import ImageGallery from "../ImageGallery";
 
 export default function Fruit({ fruit }: { fruit: FruitRes }) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -16,12 +17,17 @@ export default function Fruit({ fruit }: { fruit: FruitRes }) {
 
   return (
     <Card>
-      <LazyLoadImage
-        src={image[0]}
-        placeholderSrc={image[0]}
-        alt="fruit image"
-        className="item-img"
-        effect="blur"
+      <ImageGallery
+        second={3}
+        images={image.map((url) => (
+          <LazyLoadImage
+            src={url}
+            placeholderSrc={url}
+            alt="fruit image"
+            className="item-img"
+            effect="blur"
+          />
+        ))}
       />
       <div className="body">
         <div>
@@ -55,6 +61,9 @@ const Card = styled.article`
   background-color: var(--mainWhite);
   position: relative;
   overflow: hidden;
+  .lazy-load-image-background.blur.lazy-load-image-loaded {
+    width: 100%;
+  }
   p,
   h3 {
     margin: 0;

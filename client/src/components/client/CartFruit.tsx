@@ -6,9 +6,10 @@ import { RiDeleteBin6Line } from "react-icons/ri";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { FilteredCart } from "../../interfaces/Cart";
 import { UserRes } from "../../interfaces/User";
-import { useClient } from "./ClientProvider";
+import { useUser } from "../context/UserProvider";
 import { useProducts } from "./ProductsProvider";
 import Checkout from "../../pages/client/Checkout";
+import ImageGallery from "../ImageGallery";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
@@ -18,8 +19,8 @@ export default function FruitCart({
   filteredCart: FilteredCart;
 }) {
   const { addToCart, deleteFromCart } = useProducts();
+  const { user: client } = useUser();
   const [user, setUser] = useState<UserRes | null>(null);
-  const { client } = useClient();
   const { owner, cart, totalPrice } = filteredCart;
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -81,12 +82,17 @@ export default function FruitCart({
               return (
                 <article key={_id} className="cart-item">
                   <div className="item">
-                    <LazyLoadImage
-                      src={image[0]}
-                      placeholderSrc={image[0]}
-                      alt="photo"
-                      className="cart-img"
-                      effect="blur"
+                    <ImageGallery
+                      second={4}
+                      images={image.map((url) => (
+                        <LazyLoadImage
+                          src={url}
+                          placeholderSrc={url}
+                          alt="photo"
+                          className="cart-img"
+                          effect="blur"
+                        />
+                      ))}
                     />
                     <h4>{name}</h4>
                   </div>

@@ -8,7 +8,7 @@ import {
 } from "react";
 import { Outlet } from "react-router-dom";
 import Pusher from "pusher-js";
-import { useAdmin } from "./AdminProvider";
+import { useUser } from "../context/UserProvider";
 import { TransactionRes } from "../../interfaces/Transaction";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
@@ -24,7 +24,7 @@ const TransactionContext = createContext<ITransactionContext>({
 });
 
 export default function TransactionProvider() {
-  const { admin } = useAdmin();
+  const { user: admin } = useUser();
   const [transactions, setTransactions] = useState<TransactionRes[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -51,9 +51,13 @@ export default function TransactionProvider() {
     }
   }, [admin]);
 
-  const addTransactions = useCallback((transaction: TransactionRes) => {
-    setTransactions((prev) => [transaction, ...prev]);
-  }, []);
+  const addTransactions = useCallback(
+    (transaction: TransactionRes) => {
+      if (admin && transaction.adminId !== admin.uid) return;
+      setTransactions((prev) => [transaction, ...prev]);
+    },
+    [admin]
+  );
 
   const updateTransactions = useCallback(
     ({ _id, fields }: { _id: string; fields: any }) => {
@@ -66,6 +70,10 @@ export default function TransactionProvider() {
     []
   );
 
+  const deleteTransactions = useCallback((id: string) => {
+    setTransactions((prev) => prev.filter(({ _id }) => _id !== id));
+  }, []);
+
   useEffect(() => {
     const pusher = new Pusher(import.meta.env.VITE_APP_PUSHER_KEY, {
       cluster: import.meta.env.VITE_APP_PUSHER_CLUSTER,
@@ -73,6 +81,7 @@ export default function TransactionProvider() {
     const channel = pusher.subscribe("transactions");
     channel.bind("insert transaction", addTransactions);
     channel.bind("update transaction", updateTransactions);
+    channel.bind("delete transaction", deleteTransactions);
     return () => {
       pusher.unsubscribe("transactions");
     };

@@ -1,11 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { useClient } from "./ClientProvider";
 import styled from "styled-components";
+import { useUser } from "../context/UserProvider";
 import Logo from "../Logo";
 import Avatar from "../Avatar";
 
 export default function Navigation() {
-  const { client } = useClient();
+  const { user: client } = useUser();
 
   return (
     <Nav>

@@ -27,7 +27,7 @@ export default function Transactions() {
       ) : (
         <div className="transactions-container">
           {transactions.map((transaction) => (
-            <Transaction key={transaction._id} {...transaction} />
+            <Transaction key={transaction._id} transaction={transaction} />
           ))}
         </div>
       )}

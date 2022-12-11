@@ -9,7 +9,7 @@ import {
 } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
-import { useAdmin } from "../../components/admin/AdminProvider";
+import { useUser } from "../../components/context/UserProvider";
 import { FruitReq } from "../../interfaces/Fruit";
 import { deleteImages, uploadImages } from "../../utils/storage";
 import { useStock } from "../../components/admin/StockProvider";
@@ -20,7 +20,7 @@ const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 export default function SingleFruit() {
   const [imgFiles, setImgFiles] = useState<FileList | null>();
   const { id } = useParams();
-  const { admin } = useAdmin();
+  const { user } = useUser();
   const { fruits } = useStock();
   const fruit = useMemo(
     () => fruits.find((fruit) => fruit._id === id) || null,
@@ -39,7 +39,7 @@ export default function SingleFruit() {
     async (e: FormEvent<HTMLFormElement>) => {
       setLoading(true);
       e.preventDefault();
-      if (!admin || !fruit || fruit.owner !== admin.uid) return;
+      if (!user || !fruit || fruit.owner !== user.uid) return;
       if (isNaN(Number(fruit.price))) return;
       const { name, quantity, price, description } = updateFruit;
       const body: FruitReq = { name, price, quantity, description };
@@ -52,7 +52,7 @@ export default function SingleFruit() {
       try {
         await axios.patch(`${baseUrl}/api/v1/fruits/${id}`, body, {
           headers: {
-            Authorization: `Bearer ${await admin.getIdToken()}`,
+            Authorization: `Bearer ${await user.getIdToken()}`,
           },
         });
         setModal({ show: true, type: "success", msg: "Edit successfully!" });
@@ -66,7 +66,7 @@ export default function SingleFruit() {
         setLoading(false);
       }
     },
-    [admin, fruit, imgFiles, updateFruit]
+    [user, fruit, imgFiles, updateFruit]
   );
 
   const handleChangeFiles = useCallback((e: ChangeEvent<HTMLInputElement>) => {

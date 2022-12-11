@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 import { FormEvent, useCallback, useState, useRef, useEffect } from "react";
 import styled from "styled-components";
-import { useClient } from "../../components/client/ClientProvider";
+import { useUser } from "../../components/context/UserProvider";
 import { useProducts } from "../../components/client/ProductsProvider";
 import { FilteredCart } from "../../interfaces/Cart";
 import { Modal } from "../../interfaces/Modal";
@@ -15,7 +15,7 @@ export default function Checkout({
   filteredCart: FilteredCart;
   handleClose: () => void;
 }) {
-  const { client } = useClient();
+  const { user: client } = useUser();
   const { deleteFromCartByOwner } = useProducts();
   const [loading, setLoading] = useState<boolean>(false);
   const { owner, cart } = filteredCart;

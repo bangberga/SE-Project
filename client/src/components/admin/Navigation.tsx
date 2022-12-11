@@ -1,11 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { useAdmin } from "./AdminProvider";
+import { useUser } from "../context/UserProvider";
 import styled from "styled-components";
 import Logo from "../Logo";
 import Avatar from "../Avatar";
 
 export default function Navigation() {
-  const { admin } = useAdmin();
+  const { user: admin } = useUser();
 
   return (
     <Nav>

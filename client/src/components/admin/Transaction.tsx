@@ -9,20 +9,18 @@ import { interval } from "../../utils/formatDate";
 import { TransactionRes } from "../../interfaces/Transaction";
 import { OrderRes } from "../../interfaces/Order";
 import { UserRes } from "../../interfaces/User";
-import { useAdmin } from "./AdminProvider";
+import { useUser } from "../context/UserProvider";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
 export default function Transaction({
-  _id,
-  orderId,
-  status,
-  address,
-  phone,
-  description,
-  createdAt,
-}: TransactionRes) {
-  const { admin } = useAdmin();
+  transaction,
+}: {
+  transaction: TransactionRes;
+}) {
+  const { _id, orderId, status, address, phone, description, createdAt } =
+    transaction;
+  const { user: admin } = useUser();
   const [buyer, setBuyer] = useState<UserRes | null>(null);
   const [order, setOrder] = useState<OrderRes | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -58,6 +56,21 @@ export default function Transaction({
     }
   }, [admin]);
 
+  const handleDelete = useCallback(async () => {
+    if (!admin) return;
+    try {
+      await axios.delete(`${baseUrl}/api/v1/transactions/${_id}`, {
+        headers: {
+          Authorization: `Bearer ${await admin.getIdToken()}`,
+        },
+      });
+    } catch (error) {
+      // handle error
+    } finally {
+      setLoading(false);
+    }
+  }, [admin, _id]);
+
   useEffect(() => {
     const controller = new AbortController();
     axios
@@ -75,7 +88,7 @@ export default function Transaction({
         // handle error
       });
     return () => controller.abort();
-  }, []);
+  }, [orderId]);
 
   return (
     <Card>
@@ -133,7 +146,9 @@ export default function Transaction({
           <div className="btn-container">
             <p className={`status ${status}`}>{status}</p>
             {status === "fail" ? (
-              ""
+              <button className="btn-warning" onClick={handleDelete}>
+                delete
+              </button>
             ) : (
               <button className="btn-warning" onClick={handleCancel}>
                 {loading ? "loading..." : "cancel"}

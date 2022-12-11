@@ -5,6 +5,7 @@ import { useStock } from "./StockProvider";
 import { formatDate, interval } from "../../utils/formatDate";
 import styled from "styled-components";
 import ShowHideText from "../ShowHideText";
+import ImageGallery from "../ImageGallery";
 
 export default function Fruit({
   name,
@@ -19,12 +20,17 @@ export default function Fruit({
   const { handleDeleteFruit } = useStock();
   return (
     <Card>
-      <LazyLoadImage
-        src={image[0]}
-        alt="fruit image"
-        effect="blur"
-        className="item-img"
-        placeholderSrc={image[0]}
+      <ImageGallery
+        second={3}
+        images={image.map((url) => (
+          <LazyLoadImage
+            src={url}
+            alt="fruit image"
+            effect="blur"
+            className="item-img"
+            placeholderSrc={url}
+          />
+        ))}
       />
       <div className="body">
         <div>
@@ -61,6 +67,9 @@ export default function Fruit({
 
 const Card = styled.article`
   background-color: var(--mainWhite);
+  .lazy-load-image-background {
+    width: 100%;
+  }
   p,
   h3 {
     margin: 0;

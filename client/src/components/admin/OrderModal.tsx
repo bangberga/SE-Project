@@ -17,23 +17,29 @@ export default function OrderModal({
         <hr />
         <div className="fruits-container">
           {order ? (
-            order.listOfFruits.map((fruit) => (
-              <article className="item" key={fruit.fruitId._id}>
-                <header>
-                  <LazyLoadImage
-                    src={fruit.fruitId.image[0]}
-                    placeholderSrc={fruit.fruitId.image[0]}
-                    alt="fruit photo"
-                    className="photo"
-                    effect="blur"
-                  />
-                </header>
-                <footer>
-                  <p className="highlight">{fruit.fruitId.name}</p>
-                  <p>Quantity: {fruit.quantity}</p>
-                </footer>
-              </article>
-            ))
+            order.listOfFruits.map((fruit, index) =>
+              fruit.fruitId ? (
+                <article className="item" key={fruit.fruitId._id}>
+                  <header>
+                    <LazyLoadImage
+                      src={fruit.fruitId.image[0]}
+                      placeholderSrc={fruit.fruitId.image[0]}
+                      alt="fruit photo"
+                      className="photo"
+                      effect="blur"
+                    />
+                  </header>
+                  <footer>
+                    <p className="highlight">{fruit.fruitId.name}</p>
+                    <p>Quantity: {fruit.quantity}</p>
+                  </footer>
+                </article>
+              ) : (
+                <p className="del-msg italic" key={index}>
+                  This fruit has been deleted !
+                </p>
+              )
+            )
           ) : (
             <>
               <article className="skeleton">
@@ -96,6 +102,10 @@ const Wrapper = styled.section`
         p {
           text-transform: capitalize;
         }
+      }
+      .del-msg {
+        color: var(--mainRed);
+        font-size: small;
       }
       .skeleton {
         display: grid;

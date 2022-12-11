@@ -6,7 +6,7 @@ type OrderRes = {
   createdAt: string;
   updatedAt: string;
   listOfFruits: {
-    fruitId: FruitRes;
+    fruitId: FruitRes | null;
     quantity: number;
   }[];
 };

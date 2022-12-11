@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { Outlet } from "react-router-dom";
-import { useAdmin } from "./AdminProvider";
+import { useUser } from "../context/UserProvider";
 import { FruitRes } from "../../interfaces/Fruit";
 import { deleteImages } from "../../utils/storage";
 
@@ -27,7 +27,7 @@ const StockContext = createContext<IStockContext>({
 });
 
 export default function Stock() {
-  const { admin } = useAdmin();
+  const { user: admin } = useUser();
   const [fruits, setFruits] = useState<FruitRes[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -80,9 +80,13 @@ export default function Stock() {
     [admin]
   );
 
-  const addFruits = useCallback((fruit: FruitRes) => {
-    setFruits((prev) => [...prev, fruit]);
-  }, []);
+  const addFruits = useCallback(
+    (fruit: FruitRes) => {
+      if (admin && fruit.owner !== admin.uid) return;
+      setFruits((prev) => [...prev, fruit]);
+    },
+    [admin]
+  );
 
   const updateFruits = useCallback(
     ({ _id, fields }: { _id: string; fields: any }) => {
