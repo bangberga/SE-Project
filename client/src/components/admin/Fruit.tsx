@@ -7,17 +7,25 @@ import styled from "styled-components";
 import ShowHideText from "../ShowHideText";
 import ImageGallery from "../ImageGallery";
 
-export default function Fruit({
-  name,
-  price,
-  quantity,
-  createdAt,
-  updatedAt,
-  image,
-  _id,
-  description,
-}: FruitRes) {
+interface FruitProps {
+  fruit: FruitRes;
+}
+
+export default function Fruit(props: FruitProps) {
+  const {
+    fruit: {
+      name,
+      price,
+      quantity,
+      createdAt,
+      updatedAt,
+      image,
+      _id,
+      description,
+    },
+  } = props;
   const { handleDeleteFruit } = useStock();
+
   return (
     <Card>
       <ImageGallery

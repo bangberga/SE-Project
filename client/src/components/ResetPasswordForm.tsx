@@ -17,7 +17,7 @@ import styled from "styled-components";
 import { auth } from "../utils/firebaseConfig";
 import strongPasswordChecker from "../utils/strongPasswordChecker";
 import debouce from "../utils/debounce";
-import { Modal } from "../interfaces/Modal";
+import useModal from "../customs/hooks/useModal";
 
 export default function ResetPasswordForm() {
   const [search] = useSearchParams();
@@ -25,9 +25,10 @@ export default function ResetPasswordForm() {
   const continueUrl = search.get("continueUrl");
   const [email, setEmail] = useState<string>("");
   const passwordRef = useRef<HTMLInputElement>(null);
-  const [modal, setModal] = useState<Modal>({ show: false, msg: "" });
   const [level, setLevel] = useState<"STRONG" | "MEDIUM" | "WEAK" | null>(null);
   const [error, setError] = useState<boolean>(false);
+  const [modal, handleModal] = useModal();
+
   const handleChangePassword = useMemo(
     () =>
       debouce((e: ChangeEvent<HTMLInputElement>) => {
@@ -52,12 +53,12 @@ export default function ResetPasswordForm() {
       if (!password) return;
       e.preventDefault();
       if (level === "WEAK") {
-        setModal({ show: true, msg: "Weak password", type: "error" });
+        handleModal({ show: true, msg: "Weak password", type: "error" });
         return;
       }
       try {
         await confirmPasswordReset(auth, actionCode as string, password.value);
-        setModal({ show: true, msg: "Password reseted!", type: "success" });
+        handleModal({ show: true, msg: "Password reseted!", type: "success" });
       } catch (error) {
         const err = error as AuthError;
         switch (err.code) {
@@ -67,7 +68,7 @@ export default function ResetPasswordForm() {
         }
       }
     },
-    [actionCode]
+    [level, actionCode, handleModal]
   );
 
   useEffect(() => {

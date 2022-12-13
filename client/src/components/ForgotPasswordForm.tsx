@@ -3,57 +3,52 @@ import {
   AuthError,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { useRef, useCallback, FormEvent, useState, useEffect } from "react";
+import { useRef, useCallback, FormEvent, useState } from "react";
 import styled from "styled-components";
 import { auth } from "../utils/firebaseConfig";
-import { Modal } from "../interfaces/Modal";
+import useModal from "../customs/hooks/useModal";
 
 export default function ForgotPasswordForm({ role }: { role: string }) {
   const emailRef = useRef<HTMLInputElement>(null);
-  const [modal, setModal] = useState<Modal>({ show: false, msg: "" });
   const [loading, setLoading] = useState<boolean>(false);
+  const [modal, handleModal] = useModal();
 
-  const handleSubmit = useCallback(async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const email = emailRef.current;
-    if (!email) return;
-    const actionCodeSetting: ActionCodeSettings = {
-      url: `http://127.0.0.1:5173/${role === "admin" ? "admin" : ""}/login`,
-      handleCodeInApp: true,
-    };
-    setLoading(true);
-    try {
-      await sendPasswordResetEmail(auth, email.value, actionCodeSetting);
-      setModal({ type: "success", show: true, msg: "Check your email!" });
-    } catch (error) {
-      const err = error as AuthError;
-      switch (err.code) {
-        case "auth/missing-email":
-          setModal({ type: "error", show: true, msg: "Missing email!" });
-          break;
-        case "auth/user-not-found":
-          setModal({ type: "error", show: true, msg: "User not found" });
-          break;
-        default:
-          setModal({ type: "error", show: true, msg: "Something went wrong!" });
-          break;
+  const handleSubmit = useCallback(
+    async (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const email = emailRef.current;
+      if (!email) return;
+      const actionCodeSetting: ActionCodeSettings = {
+        url: `http://127.0.0.1:5173/${role === "admin" ? "admin" : ""}/login`,
+        handleCodeInApp: true,
+      };
+      setLoading(true);
+      try {
+        await sendPasswordResetEmail(auth, email.value, actionCodeSetting);
+        handleModal({ type: "success", show: true, msg: "Check your email!" });
+      } catch (error) {
+        const err = error as AuthError;
+        switch (err.code) {
+          case "auth/missing-email":
+            handleModal({ type: "error", show: true, msg: "Missing email!" });
+            break;
+          case "auth/user-not-found":
+            handleModal({ type: "error", show: true, msg: "User not found" });
+            break;
+          default:
+            handleModal({
+              type: "error",
+              show: true,
+              msg: "Something went wrong!",
+            });
+            break;
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    if (modal.show) {
-      timeout = setTimeout(() => {
-        setModal((prev) => ({ ...prev, show: false }));
-      }, 4000);
-    }
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [modal.show]);
+    },
+    [handleModal]
+  );
 
   return (
     <Wrapper>

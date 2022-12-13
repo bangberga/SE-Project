@@ -4,7 +4,6 @@ import {
   ClipboardEvent,
   FormEvent,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -25,11 +24,16 @@ import strongPasswordChecker from "../utils/strongPasswordChecker";
 import { uploadImages } from "../utils/storage";
 import debouce from "../utils/debounce";
 import GoogleRegisterButton from "../components/GoogleButton";
-import { Modal } from "../interfaces/Modal";
+import useModal from "../customs/hooks/useModal";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
-export default function RegisterForm({ role }: { role: string }) {
+interface RegisterFormProps {
+  role: string;
+}
+
+export default function RegisterForm(props: RegisterFormProps) {
+  const { role } = props;
   const googleProvider = new GoogleAuthProvider();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -37,7 +41,8 @@ export default function RegisterForm({ role }: { role: string }) {
   const [imgFiles, setImgFiles] = useState<FileList | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [level, setLevel] = useState<"STRONG" | "MEDIUM" | "WEAK" | null>(null);
-  const [modal, setModal] = useState<Modal>({ show: false, msg: "" });
+  const [modal, handleModal] = useModal();
+
   const handleChangePassword = useMemo(
     () =>
       debouce((e: ChangeEvent<HTMLInputElement>) => {
@@ -70,22 +75,28 @@ export default function RegisterForm({ role }: { role: string }) {
           );
           await updateProfile(user, { photoURL: fileNames[0] });
         }
-        setModal({ show: true, msg: "Register successfully", type: "success" });
+        handleModal({
+          show: true,
+          msg: "Register successfully",
+          type: "success",
+        });
       } catch (error) {
-        const err = error as AxiosError;
-        if (err.message === "Network Error") return flag && deleteUser(user);
-        const response = err.response as { data: any; status: number };
-        if (response.status === 429) {
-          setModal({ type: "error", show: true, msg: response.data });
-          return flag && deleteUser(user);
-        }
-        if (response.status === 400) {
-          setModal({ type: "error", show: true, msg: response.data.msg });
-          return;
+        if (error instanceof AxiosError) {
+          if (error.message === "Network Error")
+            return flag && deleteUser(user);
+          const response = error.response as { data: any; status: number };
+          if (response.status === 429) {
+            handleModal({ type: "error", show: true, msg: response.data });
+            return flag && deleteUser(user);
+          }
+          if (response.status === 400) {
+            handleModal({ type: "error", show: true, msg: response.data.msg });
+            return;
+          }
         }
       }
     },
-    [imgFiles]
+    [imgFiles, handleModal]
   );
 
   const handleRegister = useCallback(
@@ -97,7 +108,7 @@ export default function RegisterForm({ role }: { role: string }) {
       const password = passwordRef.current.value;
       const rePassword = rePasswordRef.current.value;
       if (!email || !password) {
-        setModal({
+        handleModal({
           show: true,
           msg: "Missing email or password",
           type: "error",
@@ -105,11 +116,11 @@ export default function RegisterForm({ role }: { role: string }) {
         return;
       }
       if (level === "WEAK") {
-        setModal({ show: true, msg: "Weak password", type: "error" });
+        handleModal({ show: true, msg: "Weak password", type: "error" });
         return;
       }
       if (password !== rePassword) {
-        setModal({
+        handleModal({
           show: true,
           msg: "Password does not match!",
           type: "error",
@@ -117,7 +128,7 @@ export default function RegisterForm({ role }: { role: string }) {
         return;
       }
       setLoading(true);
-      setModal({ show: false, msg: "" });
+      handleModal({ show: false, msg: "" });
       try {
         const { user } = await createUserWithEmailAndPassword(
           auth,
@@ -131,7 +142,7 @@ export default function RegisterForm({ role }: { role: string }) {
         const errorCode = authErr.code;
         switch (errorCode) {
           case "auth/email-already-in-use":
-            setModal({
+            handleModal({
               show: true,
               msg: "Email has already registered",
               type: "error",
@@ -142,7 +153,7 @@ export default function RegisterForm({ role }: { role: string }) {
         setLoading(false);
       }
     },
-    [level, register]
+    [level, register, handleModal]
   );
 
   const handleRegisterWithGoogle = useCallback(async () => {
@@ -164,18 +175,6 @@ export default function RegisterForm({ role }: { role: string }) {
     e.preventDefault();
     return false;
   }, []);
-
-  useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    if (modal.show) {
-      timeout = setTimeout(() => {
-        setModal((prev) => ({ ...prev, show: false }));
-      }, 4000);
-    }
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [modal.show]);
 
   return (
     <Wrapper>

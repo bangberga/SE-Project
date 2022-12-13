@@ -13,11 +13,12 @@ import { useUser } from "../context/UserProvider";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
-export default function Transaction({
-  transaction,
-}: {
+interface TransactionProps {
   transaction: TransactionRes;
-}) {
+}
+
+export default function Transaction(props: TransactionProps) {
+  const { transaction } = props;
   const { _id, orderId, status, address, phone, description, createdAt } =
     transaction;
   const { user: admin } = useUser();

@@ -31,7 +31,7 @@ export default function FruitsContainer() {
       ) : (
         <div className="fruits-container">
           {fruits.map((fruit) => (
-            <Fruit key={fruit._id} {...fruit} />
+            <Fruit key={fruit._id} fruit={fruit} />
           ))}
         </div>
       )}

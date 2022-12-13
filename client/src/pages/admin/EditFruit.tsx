@@ -11,7 +11,11 @@ import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { useUser } from "../../components/context/UserProvider";
 import { FruitReq } from "../../interfaces/Fruit";
-import { deleteImages, uploadImages } from "../../utils/storage";
+import {
+  deleteImages,
+  instanceOfStorageError,
+  uploadImages,
+} from "../../utils/storage";
 import { useStock } from "../../components/admin/StockProvider";
 import { Modal } from "../../interfaces/Modal";
 
@@ -43,13 +47,13 @@ export default function SingleFruit() {
       if (isNaN(Number(fruit.price))) return;
       const { name, quantity, price, description } = updateFruit;
       const body: FruitReq = { name, price, quantity, description };
-      if (imgFiles?.length) {
-        await deleteImages(
-          fruit.image.filter((img) => img !== "/unavailable image.jpg")
-        );
-        body.image = await uploadImages(imgFiles);
-      }
       try {
+        if (imgFiles?.length) {
+          await deleteImages(
+            fruit.image.filter((img) => img !== "/unavailable image.jpg")
+          );
+          body.image = await uploadImages(imgFiles);
+        }
         await axios.patch(`${baseUrl}/api/v1/fruits/${id}`, body, {
           headers: {
             Authorization: `Bearer ${await user.getIdToken()}`,
@@ -57,10 +61,18 @@ export default function SingleFruit() {
         });
         setModal({ show: true, type: "success", msg: "Edit successfully!" });
       } catch (error) {
-        const err = error as AxiosError;
-        if (err.response) {
-          const msg = (err.response.data as { msg: string }).msg;
-          setModal({ type: "error", show: true, msg: msg });
+        if (error instanceof AxiosError) {
+          if (error.response) {
+            const msg = (error.response.data as { msg: string }).msg;
+            setModal({ type: "error", show: true, msg: msg });
+          }
+        }
+        if (instanceOfStorageError(error)) {
+          setModal({
+            type: "error",
+            show: true,
+            msg: "Image must be less than 200kB",
+          });
         }
       } finally {
         setLoading(false);

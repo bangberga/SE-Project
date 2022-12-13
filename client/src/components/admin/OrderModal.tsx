@@ -3,13 +3,14 @@ import styled from "styled-components";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { OrderRes } from "../../interfaces/Order";
 
-export default function OrderModal({
-  handleClose,
-  order,
-}: {
-  handleClose: () => void;
+interface OrderModalProps {
   order: OrderRes | null;
-}) {
+  handleClose: () => void;
+}
+
+export default function OrderModal(props: OrderModalProps) {
+  const { order, handleClose } = props;
+
   return (
     <Wrapper onClick={handleClose}>
       <div className="container" onClick={(e) => e.stopPropagation()}>

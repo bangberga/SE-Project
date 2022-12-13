@@ -4,9 +4,8 @@ import {
   useCallback,
   useRef,
   useState,
-  useEffect,
+  ReactNode,
 } from "react";
-import { Link } from "react-router-dom";
 import {
   browserLocalPersistence,
   setPersistence,
@@ -20,15 +19,20 @@ import { auth } from "../utils/firebaseConfig";
 import styled from "styled-components";
 import GoogleLoginButton from "../components/GoogleButton";
 import Checkbox from "./Checkbox";
-import { Modal } from "../interfaces/Modal";
+import useModal from "../customs/hooks/useModal";
 
-export default function LoginForm({ role }: { role: string }) {
+interface LoginFormProps {
+  forgotPasswordLink?: ReactNode;
+}
+
+export default function LoginForm(props: LoginFormProps) {
+  const { forgotPasswordLink } = props;
   const googleProvider = new GoogleAuthProvider();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const [remember, setRemember] = useState<boolean>(true);
-  const [modal, setModal] = useState<Modal>({ show: false, msg: "" });
   const [loading, setLoading] = useState<boolean>(false);
+  const [modal, handleModal] = useModal();
 
   const handleLogin = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
@@ -47,13 +51,13 @@ export default function LoginForm({ role }: { role: string }) {
         const err = error as AuthError;
         switch (err.code) {
           case "auth/wrong-password":
-            setModal({ type: "error", msg: "Wrong password!", show: true });
+            handleModal({ type: "error", msg: "Wrong password!", show: true });
             break;
           case "auth/user-not-found":
-            setModal({ type: "error", msg: "Wrong email!", show: true });
+            handleModal({ type: "error", msg: "Wrong email!", show: true });
             break;
           default:
-            setModal({
+            handleModal({
               type: "error",
               msg: "Something went wrong",
               show: true,
@@ -64,7 +68,7 @@ export default function LoginForm({ role }: { role: string }) {
         setLoading(false);
       }
     },
-    [remember]
+    [remember, handleModal]
   );
 
   const handleLoginWithGoogle = useCallback(async () => {
@@ -80,18 +84,6 @@ export default function LoginForm({ role }: { role: string }) {
   const handleCheck = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setRemember(e.target.checked);
   }, []);
-
-  useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    if (modal.show) {
-      timeout = setTimeout(() => {
-        setModal((prev) => ({ ...prev, show: false }));
-      }, 4000);
-    }
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [modal.show]);
 
   return (
     <Wrapper>
@@ -131,13 +123,9 @@ export default function LoginForm({ role }: { role: string }) {
           />
         </div>
         <p>
-          Forgot your password?{" "}
-          <Link
-            to={`${role === "admin" ? "/admin" : ""}/forgotpassword`}
-            className="text-btn"
-          >
-            Reset here
-          </Link>
+          {forgotPasswordLink && (
+            <>Forgot your password? {forgotPasswordLink}</>
+          )}
         </p>
       </form>
     </Wrapper>

@@ -10,7 +10,7 @@ import {
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { useUser } from "../../components/context/UserProvider";
-import { uploadImages } from "../../utils/storage";
+import { instanceOfStorageError, uploadImages } from "../../utils/storage";
 import { FruitReq } from "../../interfaces/Fruit";
 import { Modal } from "../../interfaces/Modal";
 
@@ -44,11 +44,11 @@ export default function PostFruitModal() {
         price: Number(price.value),
       };
       if (description.value) body.description = description.value;
-      if (imgFiles?.length) {
-        const fileNames = await uploadImages(imgFiles);
-        body.image = fileNames;
-      }
       try {
+        if (imgFiles?.length) {
+          const fileNames = await uploadImages(imgFiles);
+          body.image = fileNames;
+        }
         await axios.post(`${baseUrl}/api/v1/fruits`, body, {
           headers: {
             Authorization: `Bearer ${await user.getIdToken()}`,
@@ -56,14 +56,21 @@ export default function PostFruitModal() {
         });
         setModal({ show: true, type: "success", msg: "New fruit added!" });
       } catch (error) {
-        const err = error as AxiosError;
-        if (err.response) {
-          const msg = (err.response.data as { msg: string }).msg;
-          setModal({ type: "error", show: true, msg: msg });
+        if (error instanceof AxiosError) {
+          if (error.response) {
+            const msg = (error.response.data as { msg: string }).msg;
+            setModal({ type: "error", show: true, msg: msg });
+          }
         }
-      } finally {
-        setLoading(false);
+        if (instanceOfStorageError(error)) {
+          setModal({
+            type: "error",
+            show: true,
+            msg: "Image must be less than 200kB",
+          });
+        }
       }
+      setLoading(false);
     },
     [imgFiles, user]
   );
