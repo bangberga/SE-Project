@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { FruitRes } from "../../interfaces/Fruit";
-import { useStock } from "./StockProvider";
+import { useStockContext } from "./StockProvider";
 import { formatDate, interval } from "../../utils/formatDate";
 import styled from "styled-components";
 import ShowHideText from "../ShowHideText";
@@ -24,7 +24,7 @@ export default function Fruit(props: FruitProps) {
       description,
     },
   } = props;
-  const { handleDeleteFruit } = useStock();
+  const { handleDeleteFruit } = useStockContext();
 
   return (
     <Card>

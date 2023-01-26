@@ -1,10 +1,10 @@
 import styled from "styled-components";
 import { RotatingLines } from "react-loader-spinner";
-import { useTransactions } from "../../components/admin/TransactionProvider";
+import { useTransactionsContext } from "../../components/admin/TransactionProvider";
 import Transaction from "../../components/admin/Transaction";
 
 export default function Transactions() {
-  const { transactions, loading } = useTransactions();
+  const { transactions, loading } = useTransactionsContext();
 
   return (
     <Wrapper>

@@ -1,7 +1,5 @@
-import { Outlet, Navigate } from "react-router-dom";
-import { useUser } from "../context/UserProvider";
+import ProtectedRoute from "../ProtectedRoute";
 
-export default function ProtectedRoute() {
-  const { user: admin } = useUser();
-  return admin ? <Outlet /> : <Navigate to="/admin/login" />;
+export default function AdminProtectedRoute() {
+  return <ProtectedRoute navigatePath="/admin/login" />;
 }

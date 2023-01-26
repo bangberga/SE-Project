@@ -1,27 +1,22 @@
-import axios from "axios";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { FilteredCart } from "../../interfaces/Cart";
-import { UserRes } from "../../interfaces/User";
-import { useUser } from "../context/UserProvider";
-import { useProducts } from "./ProductsProvider";
+import { useUserContext } from "../context/UserProvider";
+import { useProductsContext } from "./ProductsProvider";
 import Checkout from "../../pages/client/Checkout";
 import ImageGallery from "../ImageGallery";
+import useUser from "../../customs/hooks/useUser";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
-export default function FruitCart({
-  filteredCart,
-}: {
-  filteredCart: FilteredCart;
-}) {
-  const { addToCart, deleteFromCart } = useProducts();
-  const { user: client } = useUser();
-  const [user, setUser] = useState<UserRes | null>(null);
-  const { owner, cart, totalPrice } = filteredCart;
+export default function CartItem({ cartItem }: { cartItem: FilteredCart }) {
+  const { addToCart, deleteFromCart } = useProductsContext();
+  const { user: client } = useUserContext();
+  const { owner, cart, totalPrice } = cartItem;
+  const { user } = useUser(`${baseUrl}/api/v1/auth/getUser?uid=${owner}`);
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleOpen = useCallback(() => {
@@ -30,20 +25,6 @@ export default function FruitCart({
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
-  }, []);
-
-  useEffect(() => {
-    axios
-      .get(`${baseUrl}/api/v1/auth/getUser?uid=${owner}`)
-      .then((response) => {
-        const {
-          data: { user },
-        }: { data: { user: UserRes } } = response;
-        setUser(user);
-      })
-      .catch((error) => {
-        // handle error
-      });
   }, []);
 
   return (
@@ -159,7 +140,7 @@ export default function FruitCart({
         </footer>
       </Card>
       {isOpen ? (
-        <Checkout filteredCart={filteredCart} handleClose={handleClose} />
+        <Checkout filteredCart={cartItem} handleClose={handleClose} />
       ) : (
         ""
       )}

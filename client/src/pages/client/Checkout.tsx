@@ -1,10 +1,14 @@
 import axios, { AxiosError } from "axios";
-import { FormEvent, useCallback, useState, useRef, useEffect } from "react";
+import { FormEvent, useCallback, useState, useRef } from "react";
 import styled from "styled-components";
-import { useUser } from "../../components/context/UserProvider";
-import { useProducts } from "../../components/client/ProductsProvider";
+import { useUserContext } from "../../components/context/UserProvider";
+import { useProductsContext } from "../../components/client/ProductsProvider";
 import { FilteredCart } from "../../interfaces/Cart";
-import { Modal } from "../../interfaces/Modal";
+import Input from "../../components/Input";
+import { AiFillPhone } from "react-icons/ai";
+import { GrLocation } from "react-icons/gr";
+import TextArea from "../../components/TextArea";
+import Button from "../../components/Button";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
@@ -15,14 +19,13 @@ export default function Checkout({
   filteredCart: FilteredCart;
   handleClose: () => void;
 }) {
-  const { user: client } = useUser();
-  const { deleteFromCartByOwner } = useProducts();
+  const { user: client, addModal } = useUserContext();
+  const { deleteFromCartByOwner } = useProductsContext();
   const [loading, setLoading] = useState<boolean>(false);
   const { owner, cart } = filteredCart;
   const phoneRef = useRef<HTMLInputElement | null>(null);
   const addressRef = useRef<HTMLInputElement | null>(null);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
-  const [modal, setModal] = useState<Modal>({ show: false, msg: "" });
 
   const handleSubmit = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
@@ -53,17 +56,25 @@ export default function Checkout({
           }
         );
         alert("Thanks for buying!");
-        setModal({ show: true, type: "success", msg: "Successfully!" });
+        addModal({
+          id: Date.now(),
+          show: true,
+          type: "success",
+          msg: "Successfully!",
+          ms: 4000,
+        });
         deleteFromCartByOwner(owner);
       } catch (error) {
         const err = error as AxiosError;
         const { response } = err;
         const data = response?.data;
         if (data) {
-          setModal({
+          addModal({
+            id: Date.now(),
             show: true,
             type: "error",
             msg: (data as { msg: string }).msg,
+            ms: 4000,
           });
         }
       } finally {
@@ -73,60 +84,28 @@ export default function Checkout({
     [client, owner]
   );
 
-  useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    if (modal.show) {
-      timeout = setTimeout(() => {
-        setModal((prev) => ({ ...prev, show: false }));
-      }, 3000);
-    }
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [modal.show]);
-
   return (
     <Wrapper onClick={handleClose}>
       <div className="container" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit}>
           <h2 className="title">Enter your information</h2>
+          <Input label="Phone" type="text" ref={phoneRef} icon={AiFillPhone} />
+          <Input
+            label="Address"
+            type="text"
+            ref={addressRef}
+            icon={GrLocation}
+          />
+          <TextArea label="Description" ref={descriptionRef} />
           <div>
-            <label htmlFor="phone">Phone</label>
-            <input
-              type="text"
-              name="phone"
-              className="text-input"
-              ref={phoneRef}
-            />
-          </div>
-          <div>
-            <label htmlFor="address">Address</label>
-            <input
-              type="text"
-              name="address"
-              className="text-input"
-              ref={addressRef}
-            />
-          </div>
-          <div>
-            <label htmlFor="description">Description</label>
-            <textarea name="description" ref={descriptionRef}></textarea>
-          </div>
-          <div>
-            {modal.show ? (
-              <p className={modal.type ? modal.type : ""}>{modal.msg}</p>
-            ) : (
-              ""
-            )}
-          </div>
-          <div>
-            <button
+            <Button
               type="submit"
-              className="btn-primary block-btn"
               disabled={loading}
+              className="btn-primary"
+              style={{ width: "100%" }}
             >
               {loading ? "Loading..." : "Payment in cash"}
-            </button>
+            </Button>
             {/* <button>Paypal</button> */}
           </div>
           <div className="text-btn-container">
@@ -160,22 +139,8 @@ const Wrapper = styled.section`
       div {
         margin-bottom: 10px;
       }
-      label {
-        font-weight: bold;
-        color: var(--primaryColor);
-        display: block;
-      }
       .title {
         color: var(--primaryColor);
-      }
-      .text-input {
-        display: block;
-        width: 500px;
-        height: 40px;
-        border: none;
-        background-color: var(--mainBackground);
-        border-radius: var(--mainBorderRadius);
-        padding: 0 10px;
       }
       .text-btn-container {
         display: flex;
@@ -183,32 +148,6 @@ const Wrapper = styled.section`
         span {
           cursor: pointer;
         }
-      }
-      textarea {
-        width: 100%;
-        height: 50px;
-        resize: none;
-        padding: 5px;
-      }
-      .block-btn {
-        width: 100%;
-        margin: 5px 0;
-      }
-      .success,
-      .error {
-        display: flex;
-        justify-content: center;
-        height: var(--inputHeight);
-        border-radius: var(--mainBorderRadius);
-        align-items: center;
-      }
-      .success {
-        color: var(--mainGreen);
-        background-color: var(--mainLightGreen);
-      }
-      .error {
-        color: var(--mainRed);
-        background-color: var(--mainLightRed);
       }
     }
   }

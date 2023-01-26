@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { AiOutlineMail, AiOutlineLock, AiOutlineUnlock } from "react-icons/ai";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -19,12 +20,16 @@ import {
   GoogleAuthProvider,
 } from "firebase/auth";
 import styled from "styled-components";
+import { FcGoogle } from "react-icons/fc";
 import { auth } from "../utils/firebaseConfig";
 import strongPasswordChecker from "../utils/strongPasswordChecker";
 import { uploadImages } from "../utils/storage";
 import debouce from "../utils/debounce";
-import GoogleRegisterButton from "../components/GoogleButton";
-import useModal from "../customs/hooks/useModal";
+import Button from "./Button";
+import Input from "./Input";
+import { useUserContext } from "./context/UserProvider";
+import usePasswordLevel from "../customs/hooks/usePasswordLevel";
+import PasswordLevel from "./PasswordLevel";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
@@ -34,22 +39,22 @@ interface RegisterFormProps {
 
 export default function RegisterForm(props: RegisterFormProps) {
   const { role } = props;
+  const { addModal } = useUserContext();
   const googleProvider = new GoogleAuthProvider();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const rePasswordRef = useRef<HTMLInputElement>(null);
   const [imgFiles, setImgFiles] = useState<FileList | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [level, setLevel] = useState<"STRONG" | "MEDIUM" | "WEAK" | null>(null);
-  const [modal, handleModal] = useModal();
+  const [level, handleLevel] = usePasswordLevel();
 
   const handleChangePassword = useMemo(
     () =>
       debouce((e: ChangeEvent<HTMLInputElement>) => {
         const password = e.target.value;
-        setLevel(password === "" ? null : strongPasswordChecker(password));
+        handleLevel(password === "" ? null : strongPasswordChecker(password));
       }),
-    []
+    [handleLevel]
   );
 
   const handleChangeImg = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -75,10 +80,12 @@ export default function RegisterForm(props: RegisterFormProps) {
           );
           await updateProfile(user, { photoURL: fileNames[0] });
         }
-        handleModal({
+        addModal({
+          id: Date.now(),
           show: true,
           msg: "Register successfully",
           type: "success",
+          ms: 4000,
         });
       } catch (error) {
         if (error instanceof AxiosError) {
@@ -86,17 +93,29 @@ export default function RegisterForm(props: RegisterFormProps) {
             return flag && deleteUser(user);
           const response = error.response as { data: any; status: number };
           if (response.status === 429) {
-            handleModal({ type: "error", show: true, msg: response.data });
+            addModal({
+              id: Date.now(),
+              type: "error",
+              show: true,
+              msg: response.data,
+              ms: 4000,
+            });
             return flag && deleteUser(user);
           }
           if (response.status === 400) {
-            handleModal({ type: "error", show: true, msg: response.data.msg });
+            addModal({
+              id: Date.now(),
+              type: "error",
+              show: true,
+              msg: response.data.msg,
+              ms: 4000,
+            });
             return;
           }
         }
       }
     },
-    [imgFiles, handleModal]
+    [imgFiles, addModal]
   );
 
   const handleRegister = useCallback(
@@ -108,27 +127,36 @@ export default function RegisterForm(props: RegisterFormProps) {
       const password = passwordRef.current.value;
       const rePassword = rePasswordRef.current.value;
       if (!email || !password) {
-        handleModal({
+        addModal({
+          id: Date.now(),
           show: true,
           msg: "Missing email or password",
           type: "error",
+          ms: 4000,
         });
         return;
       }
       if (level === "WEAK") {
-        handleModal({ show: true, msg: "Weak password", type: "error" });
+        addModal({
+          id: Date.now(),
+          show: true,
+          msg: "Weak password",
+          type: "error",
+          ms: 4000,
+        });
         return;
       }
       if (password !== rePassword) {
-        handleModal({
+        addModal({
+          id: Date.now(),
           show: true,
           msg: "Password does not match!",
           type: "error",
+          ms: 4000,
         });
         return;
       }
       setLoading(true);
-      handleModal({ show: false, msg: "" });
       try {
         const { user } = await createUserWithEmailAndPassword(
           auth,
@@ -142,10 +170,12 @@ export default function RegisterForm(props: RegisterFormProps) {
         const errorCode = authErr.code;
         switch (errorCode) {
           case "auth/email-already-in-use":
-            handleModal({
+            addModal({
+              id: Date.now(),
               show: true,
               msg: "Email has already registered",
               type: "error",
+              ms: 4000,
             });
             break;
         }
@@ -153,7 +183,7 @@ export default function RegisterForm(props: RegisterFormProps) {
         setLoading(false);
       }
     },
-    [level, register, handleModal]
+    [level, register, addModal]
   );
 
   const handleRegisterWithGoogle = useCallback(async () => {
@@ -180,70 +210,57 @@ export default function RegisterForm(props: RegisterFormProps) {
     <Wrapper>
       <form onSubmit={handleRegister}>
         <h2 className="title">Register</h2>
+        <Input
+          type="email"
+          label="Email"
+          placeholder="Your email..."
+          icon={AiOutlineMail}
+          ref={emailRef}
+        />
         <div>
-          <label htmlFor="email">Email</label>
-          <input type="email" ref={emailRef} className="text-input" />
-        </div>
-        <div>
-          <label htmlFor="password">Password</label>
-          <input
+          <Input
             type="password"
-            name="password"
-            ref={passwordRef}
+            label="Password"
+            icon={AiOutlineLock}
             onCopy={preventCopy}
-            onPaste={preventPaste}
             onChange={handleChangePassword}
-            className="text-input"
+            ref={passwordRef}
+            placeholder="Your password..."
           />
-          {level ? (
-            <p>
-              Password level:{" "}
-              <span className={level.toLowerCase()}>{level}</span>
-            </p>
-          ) : (
-            ""
-          )}
+          <PasswordLevel level={level} />
         </div>
+        <Input
+          type="password"
+          label="Enter password again"
+          icon={AiOutlineUnlock}
+          onPaste={preventPaste}
+          ref={rePasswordRef}
+          placeholder="Re-enter password..."
+        />
+        <Input
+          label="Upload avatar"
+          type="file"
+          accept="image/*"
+          onChange={handleChangeImg}
+        />
         <div>
-          <label htmlFor="re-password">Enter password again</label>
-          <input
-            type="password"
-            name="re-password"
-            ref={rePasswordRef}
-            onPaste={preventPaste}
-            onCopy={preventCopy}
-            className="text-input"
-          />
-        </div>
-        <div className="file-section">
-          <label htmlFor="avatar">Upload avatar</label>
-          <input
-            type="file"
-            accept="image/*"
-            name="avatar"
-            onChange={handleChangeImg}
-          />
-        </div>
-        <div>
-          {modal.show ? (
-            <p className={modal.type ? modal.type : ""}>{modal.msg}</p>
-          ) : (
-            ""
-          )}
-        </div>
-        <div>
-          <button
+          <Button
             type="submit"
-            className="btn-primary block-btn"
+            className="btn-primary"
             disabled={loading}
+            style={{ marginBottom: "10px" }}
           >
             {loading ? "Loading..." : "Sign up"}
-          </button>
-          <GoogleRegisterButton
-            handle={handleRegisterWithGoogle}
-            children="Sign up with Google"
+          </Button>
+          <Button
+            onClick={handleRegisterWithGoogle}
             disabled={loading}
-          />
+            icon={FcGoogle}
+            style={{ backgroundColor: "#eee", letterSpacing: 0 }}
+            type="button"
+          >
+            Sign up with Google
+          </Button>
         </div>
       </form>
     </Wrapper>
@@ -261,89 +278,12 @@ const Wrapper = styled.section`
     background-color: var(--mainWhite);
     box-shadow: var(--darkShadow);
     padding: 20px 30px;
+    min-width: 500px;
     div {
       margin-bottom: 10px;
     }
-    label {
-      font-weight: bold;
-      color: var(--primaryColor);
-      display: block;
-    }
     .title {
       color: var(--primaryColor);
-    }
-    .text-input {
-      display: block;
-      width: 500px;
-      height: 40px;
-      border: none;
-      background-color: var(--mainBackground);
-      border-radius: var(--mainBorderRadius);
-      padding: 0 10px;
-    }
-    textarea {
-      width: 100%;
-      height: 50px;
-      resize: none;
-      padding: 5px;
-    }
-    .remember {
-      display: flex;
-      align-items: center;
-    }
-    .remember span {
-      margin-left: 10px;
-    }
-    .weak,
-    .medium,
-    .strong {
-      font-weight: bold;
-    }
-    .weak {
-      color: var(--mainRed);
-    }
-    .medium {
-      color: var(--mainOrange);
-    }
-    .strong {
-      color: var(--mainGreen);
-    }
-    .success,
-    .error {
-      display: flex;
-      justify-content: center;
-      height: var(--inputHeight);
-      border-radius: var(--mainBorderRadius);
-      align-items: center;
-    }
-    .success {
-      color: var(--mainGreen);
-      background-color: var(--mainLightGreen);
-    }
-    .error {
-      color: var(--mainRed);
-      background-color: var(--mainLightRed);
-    }
-    .img-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-      gap: 10px;
-    }
-    .img-container img {
-      width: 100%;
-      height: 70px;
-      object-fit: cover;
-      margin-top: 10px;
-    }
-    .btn-container {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
-      align-items: center;
-    }
-    .block-btn {
-      width: 100%;
-      margin: 5px 0;
     }
   }
 `;

@@ -1,31 +1,29 @@
 import axios, { AxiosError } from "axios";
-import {
-  useCallback,
-  useState,
-  FormEvent,
-  ChangeEvent,
-  useMemo,
-  useEffect,
-} from "react";
+import { useCallback, useState, FormEvent, ChangeEvent, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
-import { useUser } from "../../components/context/UserProvider";
+import { MdOutlineDriveFileRenameOutline } from "react-icons/md";
+import { ImPriceTags } from "react-icons/im";
+import { TbSortAscendingNumbers } from "react-icons/tb";
+import { useUserContext } from "../../components/context/UserProvider";
 import { FruitReq } from "../../interfaces/Fruit";
 import {
   deleteImages,
   instanceOfStorageError,
   uploadImages,
 } from "../../utils/storage";
-import { useStock } from "../../components/admin/StockProvider";
-import { Modal } from "../../interfaces/Modal";
+import { useStockContext } from "../../components/admin/StockProvider";
+import Input from "../../components/Input";
+import TextArea from "../../components/TextArea";
+import Button from "../../components/Button";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
 export default function SingleFruit() {
   const [imgFiles, setImgFiles] = useState<FileList | null>();
   const { id } = useParams();
-  const { user } = useUser();
-  const { fruits } = useStock();
+  const { user, addModal } = useUserContext();
+  const { fruits } = useStockContext();
   const fruit = useMemo(
     () => fruits.find((fruit) => fruit._id === id) || null,
     [fruits]
@@ -37,7 +35,6 @@ export default function SingleFruit() {
     description: fruit ? fruit.description : "",
   });
   const [loading, setLoading] = useState<boolean>(false);
-  const [modal, setModal] = useState<Modal>({ show: false, msg: "" });
 
   const handleSubmit = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
@@ -59,19 +56,33 @@ export default function SingleFruit() {
             Authorization: `Bearer ${await user.getIdToken()}`,
           },
         });
-        setModal({ show: true, type: "success", msg: "Edit successfully!" });
+        addModal({
+          show: true,
+          type: "success",
+          msg: "Edit successfully!",
+          id: Date.now(),
+          ms: 4000,
+        });
       } catch (error) {
         if (error instanceof AxiosError) {
           if (error.response) {
             const msg = (error.response.data as { msg: string }).msg;
-            setModal({ type: "error", show: true, msg: msg });
+            addModal({
+              type: "error",
+              show: true,
+              msg: msg,
+              id: Date.now(),
+              ms: 4000,
+            });
           }
         }
         if (instanceOfStorageError(error)) {
-          setModal({
+          addModal({
             type: "error",
             show: true,
             msg: "Image must be less than 200kB",
+            id: Date.now(),
+            ms: 4000,
           });
         }
       } finally {
@@ -92,18 +103,6 @@ export default function SingleFruit() {
     []
   );
 
-  useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    if (modal.show) {
-      timeout = setTimeout(() => {
-        setModal((prev) => ({ ...prev, show: false }));
-      }, 3000);
-    }
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [modal.show]);
-
   if (!fruit)
     return (
       <div>
@@ -114,74 +113,58 @@ export default function SingleFruit() {
     <Wrapper>
       <form onSubmit={handleSubmit}>
         <h2 className="title">Edit fruit</h2>
-        <div>
-          <label htmlFor="name">Name</label>
-          <input
-            type="text"
-            name="name"
-            value={updateFruit.name}
-            onChange={handleChangeValue}
-            className="text-input"
-          />
-        </div>
-        <div>
-          <label htmlFor="price">Price</label>
-          <input
-            type="text"
-            name="price"
-            min={0}
-            value={updateFruit.price}
-            onChange={handleChangeValue}
-            className="text-input"
-          />
-        </div>
-        <div>
-          <label htmlFor="quantity">Quantity</label>
-          <input
-            type="number"
-            min={0}
-            name="quantity"
-            value={updateFruit.quantity}
-            onChange={handleChangeValue}
-            className="text-input"
-          />
-        </div>
-        <div>
-          <label htmlFor="description">Description</label>
-          <textarea
-            name="description"
-            placeholder="enter description"
-            value={updateFruit.description}
-            onChange={handleChangeValue}
-            className="text-input"
-          ></textarea>
-        </div>
-        <div>
-          <label htmlFor="image">Image</label>
-          <input
-            type="file"
-            name="image"
-            accept="image/*"
-            multiple={true}
-            onChange={handleChangeFiles}
-          />
-        </div>
+        <Input
+          label="Name"
+          type="text"
+          value={updateFruit.name}
+          onChange={handleChangeFiles}
+          placeholder="Enter new name..."
+          icon={MdOutlineDriveFileRenameOutline}
+        />
+        <Input
+          label="Price"
+          type="text"
+          min={0}
+          value={updateFruit.price}
+          onChange={handleChangeValue}
+          icon={ImPriceTags}
+          placeholder="Enter new price..."
+        />
+        <Input
+          label="Quantity"
+          type="number"
+          min={0}
+          value={updateFruit.quantity}
+          onChange={handleChangeValue}
+          icon={TbSortAscendingNumbers}
+          placeholder="Enter new quantity..."
+        />
+        <TextArea
+          label="Description"
+          onChange={handleChangeValue}
+          value={updateFruit.description}
+        />
+        <Input
+          label="Image"
+          type="file"
+          accept="image/*"
+          multiple={true}
+          onChange={handleChangeFiles}
+        />
         <div className="img-container">
           {fruit.image.map((img, index) => (
             <img src={img} key={index} width={200} />
           ))}
         </div>
-        <div>
-          {modal.show ? (
-            <p className={modal.type ? modal.type : ""}>{modal.msg}</p>
-          ) : (
-            ""
-          )}
-        </div>
         <div className="btn-container">
-          <button className="btn-primary" type="submit" disabled={loading}>
+          <Button
+            className="btn-primary"
+            type="submit"
+            disabled={loading}
+            style={{ width: "max-content" }}
+          >
             {loading ? "Loading..." : "Edit"}
-          </button>
+          </Button>
           <Link to="/admin/stock">Back</Link>
         </div>
       </form>
@@ -193,54 +176,16 @@ const Wrapper = styled.section`
   display: flex;
   justify-content: center;
   align-items: center;
-  p {
-    margin: 0;
-  }
   form {
     background-color: var(--mainWhite);
     box-shadow: var(--darkShadow);
     padding: 20px 30px;
+    min-width: 500px;
     div {
       margin-bottom: 10px;
     }
-    label {
-      font-weight: bold;
-      color: var(--primaryColor);
-      display: block;
-    }
     .title {
       color: var(--primaryColor);
-    }
-    .text-input {
-      display: block;
-      width: 500px;
-      height: 40px;
-      border: none;
-      background-color: var(--mainBackground);
-      border-radius: var(--mainBorderRadius);
-      padding: 0 10px;
-    }
-    textarea {
-      width: 100%;
-      height: 50px;
-      resize: none;
-      padding: 5px;
-    }
-    .success,
-    .error {
-      display: flex;
-      justify-content: center;
-      height: var(--inputHeight);
-      border-radius: var(--mainBorderRadius);
-      align-items: center;
-    }
-    .success {
-      color: var(--mainGreen);
-      background-color: var(--mainLightGreen);
-    }
-    .error {
-      color: var(--mainRed);
-      background-color: var(--mainLightRed);
     }
     .img-container {
       display: grid;

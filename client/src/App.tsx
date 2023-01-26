@@ -1,42 +1,35 @@
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
+import { lazyLoading } from "./lazyLoading";
 import PageLoading from "./components/PageLoading";
 
-const ClientLogin = lazy(() => import("./pages/client/Login"));
-const ClientRegister = lazy(() => import("./pages/client/Register"));
-const ClientResetPassword = lazy(() => import("./pages/client/ResetPassword"));
-const ClientHome = lazy(() => import("./pages/client/Home"));
-const Cart = lazy(() => import("./pages/client/Cart"));
-const Products = lazy(() => import("./pages/client/Products"));
-const AdminHome = lazy(() => import("./pages/admin/Home"));
-const AdminLogin = lazy(() => import("./pages/admin/Login"));
-const AdminRegister = lazy(() => import("./pages/admin/Register"));
-const AdminResetPassword = lazy(() => import("./pages/admin/ResetPassword"));
-const Stock = lazy(() => import("./pages/admin/Stock"));
-const EditFruit = lazy(() => import("./pages/admin/EditFruit"));
-const PostFruit = lazy(() => import("./pages/admin/PostFruit"));
-const Transactions = lazy(() => import("./pages/admin/Transactions"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+const ClientLogin = lazyLoading("./pages/client/Login");
+const ClientRegister = lazyLoading("./pages/client/Register");
+const ClientResetPassword = lazyLoading("./pages/client/ResetPassword");
+const ClientHome = lazyLoading("./pages/client/Home");
+const Cart = lazyLoading("./pages/client/Cart");
+const Products = lazyLoading("./pages/client/Products");
+const AdminHome = lazyLoading("./pages/admin/Home");
+const AdminLogin = lazyLoading("./pages/admin/Login");
+const AdminRegister = lazyLoading("./pages/admin/Register");
+const AdminResetPassword = lazyLoading("./pages/admin/ResetPassword");
+const Stock = lazyLoading("./pages/admin/Stock");
+const EditFruit = lazyLoading("./pages/admin/EditFruit");
+const PostFruit = lazyLoading("./pages/admin/PostFruit");
+const Transactions = lazyLoading("./pages/admin/Transactions");
+const NotFound = lazyLoading("./pages/NotFound");
 
-const ClientProvider = lazy(() => import("./components/client/ClientProvider"));
-const ProductsProvider = lazy(
-  () => import("./components/client/ProductsProvider")
+const AdminProtectedRoute = lazyLoading("./components/admin/ProtectedRoute");
+const AdminNavigateRoute = lazyLoading("./components/admin/NavigateRoute");
+const ClientNavigateRoute = lazyLoading("./components/client/NavigateRoute");
+const ClientProvider = lazyLoading("./components/client/ClientProvider");
+const AdminProvider = lazyLoading("./components/admin/AdminProvider");
+const ProductsProvider = lazyLoading("./components/client/ProductsProvider");
+const StockProvider = lazyLoading("./components/admin/StockProvider");
+const TransactionProvider = lazyLoading(
+  "./components/admin/TransactionProvider"
 );
-const ClientNavigateRoute = lazy(
-  () => import("./components/client/NavigateRoute")
-);
-const AdminNavigateRoute = lazy(
-  () => import("./components/admin/NavigateRoute")
-);
-const AdminProtectedRoute = lazy(
-  () => import("./components/admin/ProtectedRoute")
-);
-const AdminProvider = lazy(() => import("./components/admin/AdminProvider"));
-const StockProvider = lazy(() => import("./components/admin/StockProvider"));
-const TransactionProvider = lazy(
-  () => import("./components/admin/TransactionProvider")
-);
-const ResetPassword = lazy(() => import("./components/ResetPasswordForm"));
+const ResetPassword = lazyLoading("./components/ResetPasswordForm");
 
 export default function App() {
   return (
@@ -54,6 +47,14 @@ export default function App() {
               <Route index element={<Products />} />
               <Route path="cart" element={<Cart />} />
             </Route>
+            <Route
+              path="resetpassword"
+              element={
+                <ResetPassword
+                  continueUrl={`${window.location.origin}/login`}
+                />
+              }
+            />
           </Route>
           <Route path="/admin" element={<AdminProvider />}>
             <Route index element={<AdminHome />} />
@@ -72,8 +73,15 @@ export default function App() {
                 <Route index element={<Transactions />} />
               </Route>
             </Route>
+            <Route
+              path="resetpassword"
+              element={
+                <ResetPassword
+                  continueUrl={`${window.location.origin}/admin/login`}
+                />
+              }
+            />
           </Route>
-          <Route path="/resetpassword" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

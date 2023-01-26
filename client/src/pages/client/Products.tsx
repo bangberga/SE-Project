@@ -5,11 +5,11 @@ import { AiOutlineShoppingCart } from "react-icons/ai";
 import { RotatingLines } from "react-loader-spinner";
 import { setCookie } from "../../utils/cookie";
 import SearchBar from "../../components/SearchBar";
-import { useProducts } from "../../components/client/ProductsProvider";
+import { useProductsContext } from "../../components/client/ProductsProvider";
 import Fruit from "../../components/client/Fruit";
 
 function Products() {
-  const { loading, fruits, cart } = useProducts();
+  const { loading, fruits, cart, handleSearchQuery } = useProductsContext();
 
   useEffect(() => {
     setCookie("navigateClientUrl", "/products", 365);
@@ -19,7 +19,7 @@ function Products() {
     <Wrapper>
       <h2 className="title">Fruits</h2>
       <div className="underline"></div>
-      <SearchBar />
+      <SearchBar onChange={handleSearchQuery} />
       <div className="cart-link">
         <span className="number">{cart.length}</span>
         <Link to="/products/cart">

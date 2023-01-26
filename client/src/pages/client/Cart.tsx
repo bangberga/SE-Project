@@ -1,13 +1,13 @@
-import { useEffect, useMemo, createContext } from "react";
+import { useEffect, useMemo } from "react";
 import styled from "styled-components";
-import { useProducts } from "../../components/client/ProductsProvider";
-import CartFruit from "../../components/client/CartFruit";
+import { useProductsContext } from "../../components/client/ProductsProvider";
+import CartItem from "../../components/client/CartItem";
 import filterCartByOwner from "../../utils/filterCartByOwner";
 import { setCookie } from "../../utils/cookie";
 import { Link } from "react-router-dom";
 
 export default function Cart() {
-  const { cart } = useProducts();
+  const { cart } = useProductsContext();
   const filtered = useMemo(() => filterCartByOwner(cart), [cart]);
 
   useEffect(() => {
@@ -27,8 +27,8 @@ export default function Cart() {
         </>
       ) : (
         <div className="items-container">
-          {filtered.map((filteredCart) => (
-            <CartFruit key={filteredCart.owner} filteredCart={filteredCart} />
+          {filtered.map((item) => (
+            <CartItem key={item.owner} cartItem={item} />
           ))}
         </div>
       )}

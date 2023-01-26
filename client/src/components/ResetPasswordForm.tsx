@@ -12,30 +12,39 @@ import {
   useMemo,
   ChangeEvent,
 } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
+import Input from "./Input";
 import { auth } from "../utils/firebaseConfig";
 import strongPasswordChecker from "../utils/strongPasswordChecker";
 import debouce from "../utils/debounce";
-import useModal from "../customs/hooks/useModal";
+import { useUserContext } from "./context/UserProvider";
+import { AiOutlineLock } from "react-icons/ai";
+import usePasswordLevel from "../customs/hooks/usePasswordLevel";
+import PasswordLevel from "./PasswordLevel";
+import Button from "./Button";
 
-export default function ResetPasswordForm() {
+interface ResetPasswordFormProps {
+  continueUrl: string;
+}
+
+export default function ResetPasswordForm(props: ResetPasswordFormProps) {
+  const { continueUrl } = props;
   const [search] = useSearchParams();
+  const { addModal } = useUserContext();
   const actionCode = search.get("oobCode");
-  const continueUrl = search.get("continueUrl");
   const [email, setEmail] = useState<string>("");
   const passwordRef = useRef<HTMLInputElement>(null);
-  const [level, setLevel] = useState<"STRONG" | "MEDIUM" | "WEAK" | null>(null);
+  const [level, handleLevel] = usePasswordLevel();
   const [error, setError] = useState<boolean>(false);
-  const [modal, handleModal] = useModal();
 
   const handleChangePassword = useMemo(
     () =>
       debouce((e: ChangeEvent<HTMLInputElement>) => {
         const password = e.target.value;
-        setLevel(password === "" ? null : strongPasswordChecker(password));
+        handleLevel(password === "" ? null : strongPasswordChecker(password));
       }),
-    []
+    [handleLevel]
   );
 
   const handleResetPassword = useCallback(async () => {
@@ -53,12 +62,24 @@ export default function ResetPasswordForm() {
       if (!password) return;
       e.preventDefault();
       if (level === "WEAK") {
-        handleModal({ show: true, msg: "Weak password", type: "error" });
+        addModal({
+          id: Date.now(),
+          show: true,
+          msg: "Weak password",
+          type: "error",
+          ms: 4000,
+        });
         return;
       }
       try {
         await confirmPasswordReset(auth, actionCode as string, password.value);
-        handleModal({ show: true, msg: "Password reseted!", type: "success" });
+        addModal({
+          id: Date.now(),
+          show: true,
+          msg: "Password reseted!",
+          type: "success",
+          ms: 4000,
+        });
       } catch (error) {
         const err = error as AuthError;
         switch (err.code) {
@@ -68,7 +89,7 @@ export default function ResetPasswordForm() {
         }
       }
     },
-    [level, actionCode, handleModal]
+    [level, actionCode, addModal]
   );
 
   useEffect(() => {
@@ -93,45 +114,26 @@ export default function ResetPasswordForm() {
         <h2 className="title">Enter new password</h2>
         <p>Email: {email}</p>
         <div>
-          <label htmlFor="password">Password</label>
-          <input
+          <Input
+            label="Password"
             type="password"
-            name="password"
             ref={passwordRef}
-            className="text-input"
+            icon={AiOutlineLock}
             onChange={handleChangePassword}
           />
-          {level ? (
-            <p>
-              Password level:{" "}
-              <span className={level.toLowerCase()}>{level}</span>
-            </p>
-          ) : (
-            ""
-          )}
+          <PasswordLevel level={level} />
         </div>
         <div>
-          {modal.show ? (
-            <p className={modal.type ? modal.type : ""}>{modal.msg}</p>
-          ) : (
-            ""
-          )}
-        </div>
-        <div>
-          <button type="submit" className="btn-primary block-btn">
+          <Button type="submit" className="btn-primary">
             Reset
-          </button>
+          </Button>
         </div>
-        {continueUrl ? (
-          <p>
-            Go back to{" "}
-            <Link to={continueUrl} className="text-btn">
-              Login
-            </Link>
-          </p>
-        ) : (
-          ""
-        )}
+        <p>
+          Go back to{" "}
+          <a href={continueUrl} className="text-btn">
+            Login
+          </a>
+        </p>
       </form>
     </Wrapper>
   );
@@ -154,59 +156,12 @@ const Wrapper = styled.section`
     background-color: var(--mainWhite);
     box-shadow: var(--darkShadow);
     padding: 20px 30px;
+    min-width: 500px;
     div {
       margin-bottom: 10px;
     }
-    label {
-      font-weight: bold;
-      color: var(--primaryColor);
-      display: block;
-    }
     .title {
       color: var(--primaryColor);
-    }
-    .text-input {
-      display: block;
-      width: 500px;
-      height: 40px;
-      border: none;
-      background-color: var(--mainBackground);
-      border-radius: var(--mainBorderRadius);
-      padding: 0 10px;
-    }
-    .weak,
-    .medium,
-    .strong {
-      font-weight: bold;
-    }
-    .weak {
-      color: var(--mainRed);
-    }
-    .medium {
-      color: var(--mainOrange);
-    }
-    .strong {
-      color: var(--mainGreen);
-    }
-    .success,
-    .error {
-      display: flex;
-      justify-content: center;
-      height: var(--inputHeight);
-      border-radius: var(--mainBorderRadius);
-      align-items: center;
-    }
-    .success {
-      color: var(--mainGreen);
-      background-color: var(--mainLightGreen);
-    }
-    .error {
-      color: var(--mainRed);
-      background-color: var(--mainLightRed);
-    }
-    .block-btn {
-      width: 100%;
-      margin: 5px 0;
     }
   }
 `;

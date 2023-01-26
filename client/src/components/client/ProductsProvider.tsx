@@ -15,10 +15,11 @@ import {
   getCartFromLocalStorage,
   setNewCartFromLocalStorage,
 } from "../../utils/localStorage";
+import useFruits from "../../customs/hooks/useFruits";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
-type IProductsContext = {
+interface IProductsContext {
   fruits: FruitRes[];
   loading: boolean;
   cart: CartItem[];
@@ -26,7 +27,7 @@ type IProductsContext = {
   deleteFromCart: (id: string) => void;
   deleteFromCartByOwner: (ownerId: string) => void;
   handleSearchQuery: (e: ChangeEvent<HTMLInputElement>) => void;
-};
+}
 
 const ProductsContext = createContext<IProductsContext>({
   fruits: [],
@@ -39,11 +40,12 @@ const ProductsContext = createContext<IProductsContext>({
 });
 
 export default function ProductsProvider() {
-  const [fruits, setFruits] = useState<FruitRes[]>([]);
-  const [cart, setCart] = useState<CartItem[]>(getCartFromLocalStorage());
-  const [loading, setLoading] = useState<boolean>(false);
-  const [query, setQuery] = useSearchParams();
   const location = useLocation();
+  const { loading, fruits, handleFruits } = useFruits(
+    `${baseUrl}/api/v1/fruits${decodeURIComponent(location.search)}`
+  );
+  const [cart, setCart] = useState<CartItem[]>(getCartFromLocalStorage());
+  const [query, setQuery] = useSearchParams();
 
   const handleSearchQuery = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +63,7 @@ export default function ProductsProvider() {
   );
 
   const addFruits = useCallback((fruit: FruitRes) => {
-    setFruits((prev) => [...prev, fruit]);
+    handleFruits([...fruits, fruit]);
   }, []);
 
   const updateFromCart = useCallback((id: string, fields: any) => {
@@ -82,8 +84,8 @@ export default function ProductsProvider() {
 
   const updateFruits = useCallback(
     ({ _id, fields }: { _id: string; fields: any }) => {
-      setFruits((prev) =>
-        prev.map((fruit) =>
+      handleFruits(
+        fruits.map((fruit) =>
           fruit._id === _id ? { ...fruit, ...fields } : fruit
         )
       );
@@ -102,7 +104,7 @@ export default function ProductsProvider() {
 
   const deleteFruit = useCallback(
     (id: string) => {
-      setFruits((prev) => prev.filter((fruit) => fruit._id !== id));
+      handleFruits(fruits.filter((fruit) => fruit._id !== id));
       deleteFromCart(id);
     },
     [deleteFromCart]
@@ -120,23 +122,6 @@ export default function ProductsProvider() {
       pusher.unsubscribe("fruits");
     };
   }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    setLoading(true);
-    axios
-      .get(`${baseUrl}/api/v1/fruits${decodeURIComponent(location.search)}`, {
-        signal: controller.signal,
-      })
-      .then((response) => {
-        setFruits(response.data.fruits);
-      })
-      .catch((error) => {
-        // handle error
-      })
-      .finally(() => setLoading(false));
-    return () => controller.abort();
-  }, [location]);
 
   const addToCart = useCallback(
     (newFruit: CartItem) => {
@@ -172,6 +157,6 @@ export default function ProductsProvider() {
   );
 }
 
-export function useProducts() {
+export function useProductsContext() {
   return useContext<IProductsContext>(ProductsContext);
 }

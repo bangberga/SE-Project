@@ -1,14 +1,5 @@
-import { Outlet, Navigate } from "react-router-dom";
-import { getCookie } from "../../utils/cookie";
-import { useUser } from "../context/UserProvider";
+import NavigateRoute from "../NavigateRoute";
 
-export default function NavigateRoute() {
-  const { user: admin } = useUser();
-  const navigateUrl = getCookie("navigateAdminUrl");
-
-  return admin ? (
-    <Navigate to={navigateUrl ? navigateUrl : "/admin"} replace />
-  ) : (
-    <Outlet />
-  );
+export default function AdminNavigateRoute() {
+  return <NavigateRoute baseUrl="/admin" cookieUrl="navigateAdminUrl" />;
 }

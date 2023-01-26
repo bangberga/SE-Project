@@ -1,11 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { useUser } from "../context/UserProvider";
+import { useUserContext } from "../context/UserProvider";
 import styled from "styled-components";
 import Logo from "../Logo";
 import Avatar from "../Avatar";
 
 export default function Navigation() {
-  const { user: admin } = useUser();
+  const { user: admin } = useUserContext();
 
   return (
     <Nav>

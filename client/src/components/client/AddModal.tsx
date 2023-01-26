@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { AiOutlinePlus, AiOutlineMinus } from "react-icons/ai";
 import styled from "styled-components";
 import { FruitRes } from "../../interfaces/Fruit";
-import { useProducts } from "./ProductsProvider";
+import { useProductsContext } from "./ProductsProvider";
 
 export default function AddModal({
   fruit,
@@ -14,7 +14,7 @@ export default function AddModal({
   closeModal: () => void;
 }) {
   const { quantity } = fruit;
-  const { addToCart } = useProducts();
+  const { addToCart } = useProductsContext();
   const [count, setCount] = useState<number>(1);
 
   const increase = useCallback(() => {

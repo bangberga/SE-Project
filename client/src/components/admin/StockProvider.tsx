@@ -1,24 +1,19 @@
 import axios, { AxiosError } from "axios";
 import Pusher from "pusher-js";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useEffect } from "react";
 import { Outlet } from "react-router-dom";
-import { useUser } from "../context/UserProvider";
+import useFruits from "../../customs/hooks/useFruits";
+import { useUserContext } from "../context/UserProvider";
 import { FruitRes } from "../../interfaces/Fruit";
 import { deleteImages } from "../../utils/storage";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
-type IStockContext = {
+interface IStockContext {
   fruits: FruitRes[];
   loading: boolean;
   handleDeleteFruit: (id: string) => Promise<void>;
-};
+}
 
 const StockContext = createContext<IStockContext>({
   fruits: [],
@@ -26,30 +21,11 @@ const StockContext = createContext<IStockContext>({
   handleDeleteFruit: (id) => Promise.resolve(),
 });
 
-export default function Stock() {
-  const { user: admin } = useUser();
-  const [fruits, setFruits] = useState<FruitRes[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-
-  const fetchFruits = useCallback(async () => {
-    if (!admin) return;
-    setLoading(true);
-    try {
-      const {
-        data: { fruits },
-      }: { data: { fruits: FruitRes[] } } = await axios.get(
-        `${baseUrl}/api/v1/fruits?owner=${admin.uid}`
-      );
-      setFruits(fruits);
-    } catch (error) {
-      const err = error as AxiosError;
-      if (err.status === 404) {
-        // handle error not found
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [admin]);
+export default function StockProvider() {
+  const { user: admin } = useUserContext();
+  const { fruits, loading, handleFruits } = useFruits(
+    `${baseUrl}/api/v1/fruits?owner=${admin && admin.uid}`
+  );
 
   const handleDeleteFruit = useCallback(
     async (id: string) => {
@@ -83,15 +59,15 @@ export default function Stock() {
   const addFruits = useCallback(
     (fruit: FruitRes) => {
       if (admin && fruit.owner !== admin.uid) return;
-      setFruits((prev) => [...prev, fruit]);
+      handleFruits([...fruits, fruit]);
     },
     [admin]
   );
 
   const updateFruits = useCallback(
     ({ _id, fields }: { _id: string; fields: any }) => {
-      setFruits((prev) =>
-        prev.map((fruit) =>
+      handleFruits(
+        fruits.map((fruit) =>
           fruit._id === _id ? { ...fruit, ...fields } : fruit
         )
       );
@@ -100,7 +76,7 @@ export default function Stock() {
   );
 
   const deleteFruit = useCallback((id: string) => {
-    setFruits((prev) => prev.filter((fruit) => fruit._id !== id));
+    handleFruits(fruits.filter((fruit) => fruit._id !== id));
   }, []);
 
   useEffect(() => {
@@ -116,10 +92,6 @@ export default function Stock() {
     };
   }, [addFruits, deleteFruit, updateFruits]);
 
-  useEffect(() => {
-    fetchFruits();
-  }, [fetchFruits]);
-
   return (
     <StockContext.Provider value={{ fruits, loading, handleDeleteFruit }}>
       <Outlet />
@@ -127,6 +99,6 @@ export default function Stock() {
   );
 }
 
-export function useStock() {
+export function useStockContext() {
   return useContext<IStockContext>(StockContext);
 }

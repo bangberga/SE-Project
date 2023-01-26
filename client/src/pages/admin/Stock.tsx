@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { useStock } from "../../components/admin/StockProvider";
+import { useStockContext } from "../../components/admin/StockProvider";
 import Fruit from "../../components/admin/Fruit";
 import { RotatingLines } from "react-loader-spinner";
 
 export default function FruitsContainer() {
-  const { fruits, loading } = useStock();
+  const { fruits, loading } = useStockContext();
 
   return (
     <Wrapper>

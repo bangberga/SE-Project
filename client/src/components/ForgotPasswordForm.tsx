@@ -6,12 +6,14 @@ import {
 import { useRef, useCallback, FormEvent, useState } from "react";
 import styled from "styled-components";
 import { auth } from "../utils/firebaseConfig";
-import useModal from "../customs/hooks/useModal";
+import { useUserContext } from "./context/UserProvider";
+import Input from "./Input";
+import Button from "./Button";
 
 export default function ForgotPasswordForm({ role }: { role: string }) {
   const emailRef = useRef<HTMLInputElement>(null);
+  const { addModal } = useUserContext();
   const [loading, setLoading] = useState<boolean>(false);
-  const [modal, handleModal] = useModal();
 
   const handleSubmit = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
@@ -25,21 +27,41 @@ export default function ForgotPasswordForm({ role }: { role: string }) {
       setLoading(true);
       try {
         await sendPasswordResetEmail(auth, email.value, actionCodeSetting);
-        handleModal({ type: "success", show: true, msg: "Check your email!" });
+        addModal({
+          id: Date.now(),
+          type: "success",
+          show: true,
+          msg: "Check your email!",
+          ms: 4000,
+        });
       } catch (error) {
         const err = error as AuthError;
         switch (err.code) {
           case "auth/missing-email":
-            handleModal({ type: "error", show: true, msg: "Missing email!" });
+            addModal({
+              id: Date.now(),
+              type: "error",
+              show: true,
+              msg: "Missing email!",
+              ms: 4000,
+            });
             break;
           case "auth/user-not-found":
-            handleModal({ type: "error", show: true, msg: "User not found" });
+            addModal({
+              id: Date.now(),
+              type: "error",
+              show: true,
+              msg: "User not found",
+              ms: 4000,
+            });
             break;
           default:
-            handleModal({
+            addModal({
+              id: Date.now(),
               type: "error",
               show: true,
               msg: "Something went wrong!",
+              ms: 4000,
             });
             break;
         }
@@ -47,28 +69,22 @@ export default function ForgotPasswordForm({ role }: { role: string }) {
         setLoading(false);
       }
     },
-    [handleModal]
+    [addModal]
   );
 
   return (
     <Wrapper>
       <form onSubmit={handleSubmit}>
         <h2 className="title">Forgot password</h2>
+        <Input
+          label="Enter email to receive the reset link"
+          ref={emailRef}
+          type="email"
+        />
         <div>
-          <label htmlFor="email">Enter email to receive the reset link</label>
-          <input type="email" ref={emailRef} className="text-input" />
-        </div>
-        <div>
-          {modal.show ? (
-            <p className={modal.type ? modal.type : ""}>{modal.msg}</p>
-          ) : (
-            ""
-          )}
-        </div>
-        <div>
-          <button type="submit" className={"btn-primary block-btn"}>
-            Receive link
-          </button>
+          <Button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? "Loading..." : "Receive link"}
+          </Button>
         </div>
       </form>
     </Wrapper>
@@ -86,51 +102,12 @@ const Wrapper = styled.section`
     background-color: var(--mainWhite);
     box-shadow: var(--darkShadow);
     padding: 20px 30px;
+    min-width: 500px;
     div {
       margin-bottom: 10px;
     }
-    label {
-      font-weight: bold;
-      color: var(--primaryColor);
-      display: block;
-    }
     .title {
       color: var(--primaryColor);
-    }
-    .text-input {
-      display: block;
-      width: 500px;
-      height: 40px;
-      border: none;
-      background-color: var(--mainBackground);
-      border-radius: var(--mainBorderRadius);
-      padding: 0 10px;
-    }
-    .success,
-    .error {
-      display: flex;
-      justify-content: center;
-      height: var(--inputHeight);
-      border-radius: var(--mainBorderRadius);
-      align-items: center;
-    }
-    .success {
-      color: var(--mainGreen);
-      background-color: var(--mainLightGreen);
-    }
-    .error {
-      color: var(--mainRed);
-      background-color: var(--mainLightRed);
-    }
-    .btn-container {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
-      align-items: center;
-    }
-    .block-btn {
-      width: 100%;
-      margin: 5px 0;
     }
   }
 `;

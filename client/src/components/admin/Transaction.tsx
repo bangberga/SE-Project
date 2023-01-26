@@ -9,7 +9,7 @@ import { interval } from "../../utils/formatDate";
 import { TransactionRes } from "../../interfaces/Transaction";
 import { OrderRes } from "../../interfaces/Order";
 import { UserRes } from "../../interfaces/User";
-import { useUser } from "../context/UserProvider";
+import { useUserContext } from "../context/UserProvider";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
@@ -21,7 +21,7 @@ export default function Transaction(props: TransactionProps) {
   const { transaction } = props;
   const { _id, orderId, status, address, phone, description, createdAt } =
     transaction;
-  const { user: admin } = useUser();
+  const { user: admin } = useUserContext();
   const [buyer, setBuyer] = useState<UserRes | null>(null);
   const [order, setOrder] = useState<OrderRes | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);

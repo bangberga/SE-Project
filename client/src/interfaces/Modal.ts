@@ -1,7 +1,11 @@
-type Modal = {
-  type?: "error" | "success";
+interface Modal {
+  type: ModalTypes;
+  id: number;
   show: boolean;
   msg: string;
-};
+  ms: number;
+}
 
-export type { Modal };
+type ModalTypes = "error" | "success";
+
+export type { Modal, ModalTypes };

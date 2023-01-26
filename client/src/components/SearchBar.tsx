@@ -1,17 +1,14 @@
 import styled from "styled-components";
-import { useProducts } from "./client/ProductsProvider";
+import Input from "./Input";
+import { InputHTMLAttributes } from "react";
 
-export default function SearchBar() {
-  const { handleSearchQuery } = useProducts();
+interface SearchBar extends InputHTMLAttributes<HTMLInputElement> {}
+
+export default function SearchBar(props: SearchBar) {
   return (
     <Wrapper>
       <h3>Search fruits</h3>
-      <input
-        type="text"
-        name="name"
-        placeholder="search fruits..."
-        onChange={handleSearchQuery}
-      />
+      <Input {...props} type="text" placeholder="search fruits..." />
     </Wrapper>
   );
 }

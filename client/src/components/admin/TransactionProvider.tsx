@@ -1,68 +1,41 @@
-import axios, { AxiosError } from "axios";
-import {
-  useCallback,
-  useEffect,
-  useState,
-  createContext,
-  useContext,
-} from "react";
+import { useCallback, useEffect, createContext, useContext } from "react";
 import { Outlet } from "react-router-dom";
 import Pusher from "pusher-js";
-import { useUser } from "../context/UserProvider";
+import { useUserContext } from "../context/UserProvider";
 import { TransactionRes } from "../../interfaces/Transaction";
+import useTransactions from "../../customs/hooks/useTransactions";
 
 const baseUrl = import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000";
 
-type ITransactionContext = {
+interface ITransactionContext {
   loading: boolean;
   transactions: TransactionRes[];
-};
+}
 
 const TransactionContext = createContext<ITransactionContext>({
   loading: false,
   transactions: [],
 });
-
+0;
 export default function TransactionProvider() {
-  const { user: admin } = useUser();
-  const [transactions, setTransactions] = useState<TransactionRes[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-
-  const fetchTransactions = useCallback(async () => {
-    if (!admin) return;
-    setLoading(true);
-    try {
-      const {
-        data: { transactions },
-      }: { data: { transactions: TransactionRes[] } } = await axios.get(
-        `${baseUrl}/api/v1/transactions?sort=status,-createdAt`,
-        {
-          headers: {
-            Authorization: `Bearer ${await admin.getIdToken()}`,
-          },
-        }
-      );
-      setTransactions(transactions);
-    } catch (error) {
-      const err = error as AxiosError;
-      // handle error
-    } finally {
-      setLoading(false);
-    }
-  }, [admin]);
+  const { user: admin } = useUserContext();
+  const { transactions, loading, handleTransactions } = useTransactions(
+    admin!,
+    `${baseUrl}/api/v1/transactions?sort=status,-createdAt`
+  );
 
   const addTransactions = useCallback(
     (transaction: TransactionRes) => {
       if (admin && transaction.adminId !== admin.uid) return;
-      setTransactions((prev) => [transaction, ...prev]);
+      handleTransactions([...transactions, transaction]);
     },
     [admin]
   );
 
   const updateTransactions = useCallback(
     ({ _id, fields }: { _id: string; fields: any }) => {
-      setTransactions((prev) =>
-        prev.map((transaction) =>
+      handleTransactions(
+        transactions.map((transaction) =>
           transaction._id === _id ? { ...transaction, ...fields } : transaction
         )
       );
@@ -71,7 +44,7 @@ export default function TransactionProvider() {
   );
 
   const deleteTransactions = useCallback((id: string) => {
-    setTransactions((prev) => prev.filter(({ _id }) => _id !== id));
+    handleTransactions(transactions.filter(({ _id }) => _id !== id));
   }, []);
 
   useEffect(() => {
@@ -87,10 +60,6 @@ export default function TransactionProvider() {
     };
   }, [addTransactions, updateTransactions]);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
-
   return (
     <TransactionContext.Provider value={{ transactions, loading }}>
       <Outlet />
@@ -98,6 +67,6 @@ export default function TransactionProvider() {
   );
 }
 
-export function useTransactions() {
+export function useTransactionsContext() {
   return useContext<ITransactionContext>(TransactionContext);
 }
